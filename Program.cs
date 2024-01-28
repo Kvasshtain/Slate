@@ -11,6 +11,6 @@ app.UseStaticFiles();
 
 //app.MapGet("/", () => "Hello World!");
 
-app.MapHub<ChatHub>("/chat");
+app.MapHub<ChatHub>("/drawing");
 
 app.Run();
