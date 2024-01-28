@@ -11,13 +11,32 @@
     </div>
     <div id="chatroom"></div>
     <canvas id="canvas" width="500" height="300"></canvas>
-    <!-- <script src="https://cdnjs.cloudflare.com/ajax/libs/microsoft-signalr/6.0.1/signalr.js"></script> -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/microsoft-signalr/6.0.1/signalr.js"></script>
     <script>
         
+        const hubConnection = new signalR.HubConnectionBuilder()
+            .withUrl("/drawing")
+            .build();
+
+        document.getElementById("sendBtn").addEventListener("click", function () {
+            let message = document.getElementById("message").value;
+            hubConnection.invoke("Send", message)
+                .catch(function (err) {
+                    return console.error(err.toString());
+                });
+        });
+ 
+        hubConnection.on("Receive", function(message) {
+ 
+            let messageElement = document.createElement("p");
+            messageElement.textContent = message;
+            document.getElementById("chatroom").appendChild(messageElement);
+        });
+
         const leftBtn = 0
         const lineWidth = 2
         const color = "#FF0000"
-        let isLeftMouseBtnDown = false;
+        let isDrawingEnable = false;
 
         let prevCursorPosition = {
             x: 0,
@@ -37,19 +56,23 @@
             prevCursorPosition.x = x
             prevCursorPosition.y = y
 
-            isLeftMouseBtnDown = true
+            isDrawingEnable = true
         })
 
         document.getElementById("canvas").addEventListener("mouseup", function(event) {
             if (event.button !== leftBtn)
                 return
 
-            isLeftMouseBtnDown = false
+            isDrawingEnable = false
+        })
+
+        document.getElementById("canvas").addEventListener("mouseout", function(event) {
+            isDrawingEnable = false
         })
 
         document.getElementById("canvas").addEventListener("mousemove", function(event) {
 
-            if (!isLeftMouseBtnDown)
+            if (!isDrawingEnable)
                 return
             
             const canvas = document.getElementById("canvas")
@@ -74,6 +97,13 @@
             prevCursorPosition.y = y
         })
 
+        hubConnection.start()
+            .then(function () {
+                document.getElementById("sendBtn").disabled = false;
+            })
+            .catch(function (err) {
+                return console.error(err.toString());
+            });
 
         // document.getElementById("canvas").onmousemove = function(event) {
         //     const canvas = document.getElementById("canvas")
