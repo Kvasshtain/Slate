@@ -5,11 +5,11 @@
     <title>Slate</title>
 </head>
 <body>
-    <div id="inputForm">
+    <!-- <div id="inputForm">
         <input type="text" id="message" />
         <input type="button" id="sendBtn" value="Отправить" disabled="disabled" />
     </div>
-    <div id="chatroom"></div>
+    <div id="chatroom"></div> -->
     <canvas id="canvas" width="500" height="300"></canvas>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/microsoft-signalr/6.0.1/signalr.js"></script>
     <script>
@@ -18,30 +18,30 @@
             .withUrl("/drawing")
             .build();
 
-        document.getElementById("sendBtn").addEventListener("click", function () {
-            let message = document.getElementById("message").value;
-            hubConnection.invoke("Send", message)
-                .catch(function (err) {
-                    return console.error(err.toString());
-                });
-        });
+        // document.getElementById("sendBtn").addEventListener("click", function () {
+        //     let message = document.getElementById("message").value;
+        //     hubConnection.invoke("Send", message)
+        //         .catch(function (err) {
+        //             return console.error(err.toString());
+        //         });
+        // });
  
-        hubConnection.on("Receive", function(message) {
+        // hubConnection.on("Receive", function(message) {
  
-            let messageElement = document.createElement("p");
-            messageElement.textContent = message;
-            document.getElementById("chatroom").appendChild(messageElement);
-        });
+        //     let messageElement = document.createElement("p");
+        //     messageElement.textContent = message;
+        //     document.getElementById("chatroom").appendChild(messageElement);
+        // });
 
         const leftBtn = 0
         const lineWidth = 2
         const color = "#FF0000"
         let isDrawingEnable = false;
 
-        let prevCursorPosition = {
-            x: 0,
-            y: 0
-        }
+        // let prevCursorPosition = {
+        //     x: 0,
+        //     y: 0
+        // }
 
         document.getElementById("canvas").addEventListener("mousedown", function(event) {
             if (event.button !== leftBtn)
@@ -53,8 +53,8 @@
             let x = event.pageX - rect.left
             let y = event.pageY - rect.top
 
-            prevCursorPosition.x = x
-            prevCursorPosition.y = y
+            // prevCursorPosition.x = x
+            // prevCursorPosition.y = y
 
             isDrawingEnable = true
         })
@@ -70,37 +70,111 @@
             isDrawingEnable = false
         })
 
-        document.getElementById("canvas").addEventListener("mousemove", function(event) {
+        document.getElementById("canvas").addEventListener("mousemove", function (event) {
 
-            if (!isDrawingEnable)
-                return
-            
-            const canvas = document.getElementById("canvas")
-            const context = canvas.getContext("2d")
-            const rect = canvas.getBoundingClientRect()
-            
-            let x = event.pageX - rect.left
-            let y = event.pageY - rect.top
+                if (!isDrawingEnable)
+                    return
 
-            context.beginPath()
-            context.lineWidth = lineWidth
-            context.moveTo(prevCursorPosition.x, prevCursorPosition.y)
-            context.lineTo(x, y)
-            context.strokeStyle = color
-            context.stroke()
+                const canvas = document.getElementById("canvas")
 
-            context.fillStyle = color
-            context.arc(x, y, lineWidth / 2, 0, 2 * Math.PI)
-            context.fill()
+                const rect = canvas.getBoundingClientRect()
 
-            prevCursorPosition.x = x
-            prevCursorPosition.y = y
-        })
+                let x = event.pageX - rect.left
+                let y = event.pageY - rect.top
+
+                hubConnection.invoke("Send", { "x": x, "y": y })
+                    .catch(function (err) {
+                        return console.error(err.toString());
+                    });
+
+
+
+
+
+
+
+
+
+                // const context = canvas.getContext("2d")
+
+                // context.beginPath()
+                // context.lineWidth = lineWidth
+                // context.moveTo(prevCursorPosition.x, prevCursorPosition.y)
+                // context.lineTo(x, y)
+                // context.strokeStyle = color
+                // context.stroke()
+
+                // context.fillStyle = color
+                // context.arc(x, y, lineWidth / 2, 0, 2 * Math.PI)
+                // context.fill()
+
+                // prevCursorPosition.x = x
+                // prevCursorPosition.y = y
+            })
+        
+        hubConnection.on("Receive", function (drawingAction) {
+
+                // let messageElement = document.createElement("p");
+                // messageElement.textContent = message;
+                // document.getElementById("chatroom").appendChild(messageElement);
+
+
+
+
+                // if (!isDrawingEnable)
+                //     return
+
+                const canvas = document.getElementById("canvas")
+
+                // const rect = canvas.getBoundingClientRect()
+
+                // let x = event.pageX - rect.left
+                // let y = event.pageY - rect.top
+
+                // hubConnection.invoke("Send", { "cursorPosition": { "x": x, "y": y }, "isDrawingEnable": isDrawingEnable })
+                //     .catch(function (err) {
+                //         return console.error(err.toString());
+                //     });
+
+
+                let x = drawingAction.x
+                let y = drawingAction.y
+
+
+
+
+
+
+                const context = canvas.getContext("2d")
+
+                context.beginPath()
+                //context.lineWidth = lineWidth
+                // context.moveTo(prevCursorPosition.x, prevCursorPosition.y)
+                // context.lineTo(x, y)
+                // context.strokeStyle = color
+                // context.stroke()
+
+                //context.fillStyle = color
+                context.arc(x, y, lineWidth / 2, 0, 2 * Math.PI)
+                context.fill()
+
+                // prevCursorPosition.x = x
+                // prevCursorPosition.y = y
+
+
+
+            });
+
+
+
+
+
+
 
         hubConnection.start()
-            .then(function () {
-                document.getElementById("sendBtn").disabled = false;
-            })
+            // .then(function () {
+            //     document.getElementById("sendBtn").disabled = false;
+            // })
             .catch(function (err) {
                 return console.error(err.toString());
             });
