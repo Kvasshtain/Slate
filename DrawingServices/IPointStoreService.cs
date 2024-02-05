@@ -1,9 +1,7 @@
 namespace DrawingServices
 {
-
-    public interface IPointService
+    public interface IPointStoreService
     {
         List<DrawingAction> Points { get; }
     }
-
 }

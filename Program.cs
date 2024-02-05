@@ -1,5 +1,4 @@
 using SignalRApp;
-using Render;
 using DrawingServices;
 
 // var render = new ImageRender();
@@ -9,7 +8,9 @@ var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddSignalR();
 
-builder.Services.AddSingleton<IPointService, PointService>();
+builder.Services.AddSingleton<IImageStoreService, ImageStoreService>();
+builder.Services.AddSingleton<IPointStoreService, PointStoreService>();
+builder.Services.AddSingleton<IRenderingService, RenderingService>();
 
 var app = builder.Build();
 
@@ -25,6 +26,6 @@ app.UseStaticFiles();
 //     return Results.File(fileContent, contentType, downloadName);
 // });
 
-app.MapHub<ChatHub>("/drawing");
+app.MapHub<DrawingHub>("/drawing");
 
 app.Run();

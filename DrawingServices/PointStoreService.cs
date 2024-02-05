@@ -1,7 +1,7 @@
 namespace DrawingServices
 {
 
-    public class PointService : IPointService
+    public class PointStoreService : IPointStoreService
     {
         List<DrawingAction> points = new List<DrawingAction>();
 
