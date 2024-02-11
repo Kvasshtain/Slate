@@ -27,5 +27,6 @@ app.UseStaticFiles();
 // });
 
 app.MapHub<DrawingHub>("/drawing");
+app.MapHub<ImageHub>("/imageExchanging");
 
 app.Run();
