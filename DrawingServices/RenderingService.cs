@@ -46,15 +46,15 @@ namespace DrawingServices
                 
                 //var star = new Star(x: 100.0f, y: 100.0f, prongs: 5, innerRadii: 20.0f, outerRadii:30.0f);
 
-                foreach (var imageData in imageStoreService.Images)
-                {
-                    using (Image smallImage = Image.Load(imageData.Path)) 
-                    {
-                        // probably it's needed to add image resizing
-                        image.Mutate(x => x
-                                     .DrawImage(smallImage, imageData.Origin, new GraphicsOptions()));
-                    }
-                }
+                // foreach (var imageData in imageStoreService.Images)
+                // {
+                //     using (SixLabors.ImageSharp.Image smallImage = SixLabors.ImageSharp.Image.Load(imageData.Path)) 
+                //     {
+                //         // probably it's needed to add image resizing
+                //         image.Mutate(x => x
+                //                      .DrawImage(smallImage, imageData.Origin, new GraphicsOptions()));
+                //     }
+                // }
 
                 foreach (var point in pointStoreService.Points)
                 {

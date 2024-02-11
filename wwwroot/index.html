@@ -1,103 +1,141 @@
 <!DOCTYPE html>
 <html>
+
 <head>
     <meta charset="utf-8" />
     <title>Slate</title>
 </head>
+
 <body>
 
     <canvas id="canvas" width="1000" height="1000"></canvas>
-    
+
     <script src="https://cdnjs.cloudflare.com/ajax/libs/microsoft-signalr/6.0.1/signalr.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/fabric.js/5.3.1/fabric.min.js"></script>
-    
+
     <script>
-        const leftBtn = 0
-        const lineWidth = 2
-        const color = "#FF0000"
-        let isDrawingEnable = false;
-        
-        var ctx = document.getElementById('canvas').getContext('2d');
+
+        // const leftBtn = 0
+        // const lineWidth = 2
+        // const color = "#FF0000"
+        // let isDrawingEnable = false;
 
         window.addEventListener('load', (event) => {
-            var canvas = new fabric.Canvas('canvas')
 
-            var rect = new fabric.Rect({
-                left: 100,
-                top: 100,
-                fill: 'red',
-                width: 20,
-                height: 20
-            })
-
-            var circle = new fabric.Circle({
-                radius: 20, fill: 'green', left: 100, top: 100
-            })
-
-            canvas.add(rect, circle)
-        })
-
-        const hubConnection = new signalR.HubConnectionBuilder()
-            .withUrl("/drawing")
+            const hubConnection = new signalR.HubConnectionBuilder()
+                .withUrl("/imageExchanging")
                 .build();
 
-        document.getElementById("canvas").addEventListener("mousedown", function(event) {
-            if (event.button !== leftBtn)
-                return
+            hubConnection.on("Receive", (imgData) => {
 
-            const canvas = document.getElementById("canvas")
-            const rect = canvas.getBoundingClientRect()
 
-            let x = event.pageX - rect.left
-            let y = event.pageY - rect.top
+                let file = imgData.File;
+                let scale = imgData.Scale;
+                let left = imgData.Left;
+                let top = imageData.Top
 
-            hubConnection.invoke("Send", { "x": x, "y": y })
+                var fileReader = new FileReader();
+
+                fileReader.onload = () => {
+                    fabric.util.loadImage(fileReader.result, (img) => {
+                        var oImg = new fabric.Image(img);
+                        oImg.scale(scale).set({
+                            left: left,
+                            top: top,
+                        });
+                        canvas.add(oImg);
+                    });
+                }
+
+                fileReader.readAsDataURL(file);
+            })
+
+            hubConnection.start()
                 .catch(function (err) {
                     return console.error(err.toString());
                 });
-        })
 
-        window.imgDataBuffer // переделай на замыканиях!!!!
-        window.readyToDraw = true
 
-        function drawImage (imgData) {
-            const canvas = document.getElementById("canvas")
-            const ctx = canvas.getContext("2d")
-            
-            window.imgDataBuffer = imgData
-        
-            if (window.readyToDraw) {
-                var img = new Image()
-                img.src = "data:image/jpeg;base64," + imgData//base64
-                window.readyToDraw = false
-                window.imgDataBuffer = null
-            
-                img.onload = function () {
-                    ctx.drawImage(img, 0, 0)
-                    
-                    window.readyToDraw = true
-                    
-                    if (window.imgDataBuffer !== null){
-                        drawImage(window.imgDataBuffer)
+
+
+            var canvas = new fabric.Canvas('canvas')
+
+            const dropZone = document.body;
+            //var dropZone = document.getElementById('canvas');
+            if (dropZone) {
+                //let hoverClassName = 'hover';
+
+                dropZone.addEventListener("dragenter", function (e) {
+                    e.preventDefault();
+                    //dropZone.classList.add(hoverClassName);
+                });
+
+                dropZone.addEventListener("dragover", function (e) {
+                    e.preventDefault();
+                    //dropZone.classList.add(hoverClassName);
+                });
+
+                dropZone.addEventListener("dragleave", function (e) {
+                    e.preventDefault();
+                    //dropZone.classList.remove(hoverClassName);
+                });
+
+                dropZone.addEventListener("drop", function (e) {
+                    e.preventDefault();
+                    //dropZone.classList.remove(hoverClassName);
+
+                    const files = Array.from(e.dataTransfer.files);
+
+                    // if (files.length > 0) { // Загрзка на сервер
+                    //     const data = new FormData();
+                    //     for (const file of files) {
+                    //         data.append('file', file);
+                    //     }
+
+                    //     fetch('/upload', {
+                    //         method: 'POST',
+                    //         body: data
+                    //     })
+                    //         .then(() => console.log("file uploaded"))
+                    //         .catch(reason => console.error(reason));
+                    // }
+
+                    if (!FileReader || files.length <= 0)
+                        return
+
+
+
+
+
+                    let file = files[0]
+                    let scale = 1
+                    let left = 100
+                    let top = 100
+
+
+                    var fileReader = new FileReader();
+
+                    fileReader.onload = () => {
+                        fabric.util.loadImage(fileReader.result, (img) => {
+                            var oImg = new fabric.Image(img);
+                            oImg.scale(1).set({
+                                left: 100,
+                                top: 100,
+                            });
+                            canvas.add(oImg);
+                        });
                     }
-                }
-            
-                img.onerror = function (stuff) {
-                    window.readyToDraw = true
-            
-                    if (window.imgDataBuffer !== null){
-                        drawImage(window.imgDataBuffer)
-                    }
-                }
+
+                    fileReader.readAsDataURL(file);
+
+                    hubConnection.invoke("Send", { "File": file, "Scale": scale, "Left": left, "Top": top, })
+                        .catch(function (err) {
+                            return console.error(err.toString());
+                        });
+                });
             }
-        }
-
-        hubConnection.on("Receive", drawImage)
-
-        hubConnection.start()
-            .catch(function (err) {
-                return console.error(err.toString());
-            });
+        })
     </script>
 </body>
+
 </html>

@@ -27,7 +27,7 @@ namespace SignalRApp
 
             var data = renderingService.Render();
 
-            await this.Clients.All.SendAsync("Receive", data);
+            await Clients.All.SendAsync("Receive", data);
             
             Debug.WriteLine("Send data");
         }

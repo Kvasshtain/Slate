@@ -26,6 +26,7 @@ app.UseStaticFiles();
 //     return Results.File(fileContent, contentType, downloadName);
 // });
 
-app.MapHub<DrawingHub>("/drawing");
+//app.MapHub<DrawingHub>("/drawing");
+app.MapHub<ImageHub>("/imageExchanging");
 
 app.Run();

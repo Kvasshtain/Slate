@@ -2,6 +2,6 @@ namespace DrawingServices
 {
     public interface IImageStoreService
     {
-        List<IBlackboardObject> Images { get; }
+        List<Image> Images { get; }
     }
 }
