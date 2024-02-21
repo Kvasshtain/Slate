@@ -4,9 +4,15 @@ using DrawingServices;
 // var render = new ImageRender();
 // render.TestDraw();
 
+long maxMessageBufferSize = 524288;
+
 var builder = WebApplication.CreateBuilder(args);
 
-builder.Services.AddSignalR();
+builder.Services.AddSignalR(hubOptions =>
+{
+    hubOptions.EnableDetailedErrors = true;
+    hubOptions.MaximumReceiveMessageSize = maxMessageBufferSize;
+});
 
 builder.Services.AddSingleton<IImageStoreService, ImageStoreService>();
 builder.Services.AddSingleton<IPointStoreService, PointStoreService>();
@@ -27,6 +33,9 @@ app.UseStaticFiles();
 // });
 
 //app.MapHub<DrawingHub>("/drawing");
-app.MapHub<ImageHub>("/imageExchanging");
+app.MapHub<ImageHub>("/imageExchanging", options => {
+        options.ApplicationMaxBufferSize = maxMessageBufferSize;
+        //options.TransportMaxBufferSize = maxMessageBufferSize;
+});
 
 app.Run();

@@ -15,48 +15,35 @@
 
     <script>
 
-        // const leftBtn = 0
-        // const lineWidth = 2
-        // const color = "#FF0000"
-        // let isDrawingEnable = false;
-
         window.addEventListener('load', (event) => {
 
             const hubConnection = new signalR.HubConnectionBuilder()
                 .withUrl("/imageExchanging")
+                .configureLogging(signalR.LogLevel.Information)
                 .build();
 
-            hubConnection.on("Receive", (imgData) => {
+            hubConnection.on("Receive", (img) => {
 
 
-                let file = imgData.File;
-                let scale = imgData.Scale;
-                let left = imgData.Left;
-                let top = imageData.Top
+                let imageData = img.imageData;
+                let scale = img.scale;
+                let left = img.left;
+                let top = img.top
 
-                var fileReader = new FileReader();
-
-                fileReader.onload = () => {
-                    fabric.util.loadImage(fileReader.result, (img) => {
-                        var oImg = new fabric.Image(img);
-                        oImg.scale(scale).set({
-                            left: left,
-                            top: top,
-                        });
-                        canvas.add(oImg);
+                fabric.util.loadImage(imageData, (img) => {
+                    var oImg = new fabric.Image(img);
+                    oImg.scale(scale).set({
+                        left: left,
+                        top: top,
                     });
-                }
-
-                fileReader.readAsDataURL(file);
+                    canvas.add(oImg);
+                });
             })
 
             hubConnection.start()
                 .catch(function (err) {
                     return console.error(err.toString());
                 });
-
-
-
 
             var canvas = new fabric.Canvas('canvas')
 
@@ -86,26 +73,8 @@
 
                     const files = Array.from(e.dataTransfer.files);
 
-                    // if (files.length > 0) { // Загрзка на сервер
-                    //     const data = new FormData();
-                    //     for (const file of files) {
-                    //         data.append('file', file);
-                    //     }
-
-                    //     fetch('/upload', {
-                    //         method: 'POST',
-                    //         body: data
-                    //     })
-                    //         .then(() => console.log("file uploaded"))
-                    //         .catch(reason => console.error(reason));
-                    // }
-
                     if (!FileReader || files.length <= 0)
                         return
-
-
-
-
 
                     let file = files[0]
                     let scale = 1
@@ -116,22 +85,23 @@
                     var fileReader = new FileReader();
 
                     fileReader.onload = () => {
-                        fabric.util.loadImage(fileReader.result, (img) => {
-                            var oImg = new fabric.Image(img);
-                            oImg.scale(1).set({
-                                left: 100,
-                                top: 100,
+                        
+                        // fabric.util.loadImage(fileReader.result, (img) => {
+                        //     var oImg = new fabric.Image(img);
+                        //     oImg.scale(1).set({
+                        //         left: 100,
+                        //         top: 100,
+                        //     });
+                        //     canvas.add(oImg);
+                        // });
+
+                        hubConnection.invoke("Send", { "ImageData": fileReader.result, "Scale": scale, "Left": left, "Top": top, })
+                            .catch(function (err) {
+                                return console.error(err.toString());
                             });
-                            canvas.add(oImg);
-                        });
                     }
 
                     fileReader.readAsDataURL(file);
-
-                    hubConnection.invoke("Send", { "File": file, "Scale": scale, "Left": left, "Top": top, })
-                        .catch(function (err) {
-                            return console.error(err.toString());
-                        });
                 });
             }
         })
