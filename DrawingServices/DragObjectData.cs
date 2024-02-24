@@ -1,9 +1,8 @@
 namespace DrawingServices
 {
-    public class Image
+    public class DragObjectData
     {
-        public string ImageData {get; set;}
-        public double Scale {get; set;}
+        public string Id {get; set;}
         public double Left {get; set;}
         public double Top {get; set;}
     }

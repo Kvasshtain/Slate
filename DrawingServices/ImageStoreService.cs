@@ -4,7 +4,7 @@ namespace DrawingServices
 {
     public class ImageStoreService : IImageStoreService
     {
-        private List<Image> images = new List<Image>();
+        private List<RecImage> images = new List<RecImage>();
 
         // public ImageStoreService()
         // {
@@ -40,6 +40,6 @@ namespace DrawingServices
         //     }
         // }
 
-        public List<Image> Images => images;
+        public List<RecImage> Images => images;
     }
 }

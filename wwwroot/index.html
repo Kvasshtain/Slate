@@ -4,40 +4,107 @@
 <head>
     <meta charset="utf-8" />
     <title>Slate</title>
+    <style>
+        .blackboard {
+            width: 100%;
+            height: 100%;
+            margin: 0;
+            padding: 0;
+        }
+    </style>
 </head>
 
 <body>
 
-    <canvas id="canvas" width="1000" height="1000"></canvas>
+    <!-- <canvas id="canvas" className="blackboard" width="1000" height="1000"></canvas> -->
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/microsoft-signalr/6.0.1/signalr.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/fabric.js/5.3.1/fabric.min.js"></script>
 
     <script>
-
         window.addEventListener('load', (event) => {
+
+            //Create fabric canvas
+            let canvas = document.createElement('canvas');
+            //canvas.className = "blackboard"
+            canvas.id = "canvas";
+            document.body.append(canvas);
+
+            var fabCanvas = new fabric.Canvas('canvas');
+            
+            window.addEventListener('resize', fitFabCanvasToWindowSize, false);
+
+            function fitFabCanvasToWindowSize() {
+                fabCanvas.setHeight(window.innerHeight);
+                fabCanvas.setWidth(window.innerWidth);
+                fabCanvas.renderAll();
+            }
+
+            fitFabCanvasToWindowSize();
+            //Create fabric canvas
+            
+            //Utilities
+            function uuidv4() {
+                return "10000000-1000-4000-8000-100000000000".replace(/[018]/g, c =>
+                    (c ^ crypto.getRandomValues(new Uint8Array(1))[0] & 15 >> c / 4).toString(16)
+                );
+            }
+
+            function ucFirst(str) {
+                if (!str) return str;
+
+                return str[0].toUpperCase() + str.slice(1);
+            }
+
+            function findById(fabCanvas, id) {
+                return fabCanvas.getObjects().find(obj => obj.id === id);
+            }
+            //Utilities
 
             const hubConnection = new signalR.HubConnectionBuilder()
                 .withUrl("/imageExchanging")
                 .configureLogging(signalR.LogLevel.Information)
                 .build();
 
-            hubConnection.on("Receive", (img) => {
+            hubConnection.on("AddImageOnCanvas", (img) => {
 
-
-                let imageData = img.imageData;
+                let id = img.id;
+                let data = img.data;
                 let scale = img.scale;
                 let left = img.left;
                 let top = img.top
 
-                fabric.util.loadImage(imageData, (img) => {
+                fabric.util.loadImage(data, (img) => {
                     var oImg = new fabric.Image(img);
+
                     oImg.scale(scale).set({
+                        id: id,
                         left: left,
                         top: top,
                     });
-                    canvas.add(oImg);
+
+                    // oImg.on('moving', function () {
+                    //     console.log('selected a rectangle');
+                    // });
+
+                    fabCanvas.add(oImg);
+                    fabCanvas.renderAll();
                 });
+            })
+
+            hubConnection.on("MoveObjectOnCanvas", (payload) => {
+
+                let id = payload.id;
+                let left = payload.left;
+                let top = payload.top;
+
+                let obj = findById(fabCanvas, id);
+
+                if (!obj) return;
+
+                obj.set({ left: left, top: top });
+
+                fabCanvas.renderAll();
             })
 
             hubConnection.start()
@@ -45,10 +112,44 @@
                     return console.error(err.toString());
                 });
 
-            var canvas = new fabric.Canvas('canvas')
+            //events
+            var modifiedHandler = function (evt) {
 
+                let method = ucFirst(evt.action);
+
+                var modifiedObject = evt.target;
+                let id = modifiedObject.get('id');
+                let left = modifiedObject.get('left');
+                let top = modifiedObject.get('top');
+
+                let payload;
+
+                switch (method) {
+                    case 'Drag':
+                        payload = { "Id": id, "Left": left, "Top": top, }
+                        break
+                    default:
+                        return
+                        break
+                }
+
+                hubConnection.invoke(method, payload)
+                    .catch(function (err) {
+                        return console.error(err.toString());
+                    });
+
+            };
+
+            fabCanvas.on('object:modified', modifiedHandler);
+            //events
+
+
+
+
+
+            //const dropZone = canvas;
             const dropZone = document.body;
-            //var dropZone = document.getElementById('canvas');
+            //const dropZone = document.getElementById('canvas');
             if (dropZone) {
                 //let hoverClassName = 'hover';
 
@@ -76,26 +177,28 @@
                     if (!FileReader || files.length <= 0)
                         return
 
-                    let file = files[0]
-                    let scale = 1
-                    let left = 100
-                    let top = 100
+                    let file = files[0];
+                    let scale = 1;
+                    let left = e.pageX - e.target.offsetLeft;
+                    let top = e.pageY - e.target.offsetTop;
 
 
                     var fileReader = new FileReader();
 
                     fileReader.onload = () => {
-                        
+
                         // fabric.util.loadImage(fileReader.result, (img) => {
                         //     var oImg = new fabric.Image(img);
                         //     oImg.scale(1).set({
                         //         left: 100,
                         //         top: 100,
                         //     });
-                        //     canvas.add(oImg);
+                        //     fabCanvas.add(oImg);
                         // });
 
-                        hubConnection.invoke("Send", { "ImageData": fileReader.result, "Scale": scale, "Left": left, "Top": top, })
+                        let id = uuidv4()
+
+                        hubConnection.invoke("AddImage", { "Id": id, "Data": fileReader.result, "Scale": scale, "Left": left, "Top": top, })
                             .catch(function (err) {
                                 return console.error(err.toString());
                             });

@@ -2,6 +2,6 @@ namespace DrawingServices
 {
     public interface IImageStoreService
     {
-        List<Image> Images { get; }
+        List<RecImage> Images { get; }
     }
 }
