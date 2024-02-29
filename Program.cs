@@ -6,7 +6,7 @@ using DrawingServices;
 
 long maxMessageBufferSize = 524288;
 
-var builder = WebApplication.CreateBuilder(args);
+var builder = WebApplication.CreateBuilder(new WebApplicationOptions { WebRootPath = "wwwroot/dist"});
 
 builder.Services.AddSignalR(hubOptions =>
 {

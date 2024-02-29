@@ -15,7 +15,9 @@ var config = {
         filename: 'index_bundle.js'
     },
     plugins: [
-        new HtmlWebpackPlugin()
+        new HtmlWebpackPlugin({
+            title: 'Slate'
+          })
     ],
 };
 

@@ -24,11 +24,20 @@ namespace SignalRApp
 
         public async Task Drag(DragObjectData payload)
         {
-            //imageStoreService.Images.Add(image); //Add image moving code!!!
+            //Add image moving code!!!
 
             await Clients.Others.SendAsync("MoveObjectOnCanvas", payload);
 
             Debug.WriteLine("Drag object");
+        }
+    
+        public async Task Scale(ScaleObjectData payload)
+        {
+            //Add image scaling code!!!
+
+            await Clients.Others.SendAsync("ScaleObjectOnCanvas", payload);
+
+            Debug.WriteLine("Scale object");
         }
     }
 }
