@@ -3,7 +3,7 @@ namespace DrawingServices
 
     public class PointStoreService : IPointStoreService
     {
-        List<DrawingAction> points = new List<DrawingAction>();
+        readonly List<DrawingAction> points = [];
 
         public List<DrawingAction> Points { get => points; }
     }

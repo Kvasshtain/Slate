@@ -2,9 +2,9 @@ using SixLabors.ImageSharp;
 
 namespace DrawingServices
 {
-    public class ImageStoreService : IImageStoreService
+    public class ImageStoreService : IBlackboardStoreService
     {
-        private List<RecImage> images = new List<RecImage>();
+        private readonly Dictionary<string, BlackboardObjectData> images = []; // Replace by data base!!!
 
         // public ImageStoreService()
         // {
@@ -40,6 +40,40 @@ namespace DrawingServices
         //     }
         // }
 
-        public List<RecImage> Images => images;
+        public IEnumerable<BlackboardObjectData> BlackboardObjects => images.Values;
+
+        public bool TryAddObject(BlackboardObjectData blackboardObjectData)
+        {
+            ArgumentNullException.ThrowIfNull(blackboardObjectData);
+
+            if(images.ContainsKey(blackboardObjectData.Id))
+                return false;
+
+            images.Add(blackboardObjectData.Id, blackboardObjectData);
+
+            return true;
+        }
+
+        public void DragObject(DragObjectData dragObjectData)
+        {
+            ArgumentNullException.ThrowIfNull(dragObjectData);
+
+            var blackboardObject = images[dragObjectData.Id];
+
+            blackboardObject.Left = dragObjectData.Left;
+            blackboardObject.Top = dragObjectData.Top;
+        }
+
+        public void ScaleObject(ScaleObjectData scaleObjectData)
+        {
+            ArgumentNullException.ThrowIfNull(scaleObjectData);
+
+            var blackboardObject = images[scaleObjectData.Id];
+
+            blackboardObject.Left = scaleObjectData.Left;
+            blackboardObject.Top = scaleObjectData.Top;
+            blackboardObject.ScaleX = scaleObjectData.ScaleX;
+            blackboardObject.ScaleY = scaleObjectData.ScaleY;
+        }
     }
 }

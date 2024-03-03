@@ -6,25 +6,40 @@ namespace SignalRApp
 {
     public class ImageHub : Hub
     {
-        private readonly IImageStoreService imageStoreService;
+        private readonly IBlackboardStoreService imageStoreService;
 
-        public ImageHub(IImageStoreService imageStoreService)
+        public ImageHub(IBlackboardStoreService imageStoreService)
         {
             this.imageStoreService = imageStoreService ?? throw new ArgumentNullException(nameof(imageStoreService));
         }
-
-        public async Task AddImage(RecImage image)
+        
+        public async Task GetAllDrawingObjects()
         {
-            imageStoreService.Images.Add(image);
+            foreach(var image in imageStoreService.BlackboardObjects)
+            {
+                await Clients.Caller.SendAsync("AddObjectOnCanvas", image);
 
-            await Clients.All.SendAsync("AddImageOnCanvas", image);
+                Debug.WriteLine($"Send image {image.Id} from store");
+            }
+        }
 
-            Debug.WriteLine("Create image");
+        public async Task AddObject(BlackboardObjectData image)
+        {
+            if (imageStoreService.TryAddObject(image))
+            {
+                await Clients.All.SendAsync("AddObjectOnCanvas", image);
+                Debug.WriteLine("Create image");
+
+                return;
+            }
+            
+            await Clients.Caller.SendAsync("AddObjectError", image);
+            Debug.WriteLine("Create image error");
         }
 
         public async Task Drag(DragObjectData payload)
         {
-            //Add image moving code!!!
+            imageStoreService.DragObject(payload);
 
             await Clients.Others.SendAsync("MoveObjectOnCanvas", payload);
 
@@ -33,7 +48,7 @@ namespace SignalRApp
     
         public async Task Scale(ScaleObjectData payload)
         {
-            //Add image scaling code!!!
+            imageStoreService.ScaleObject(payload);
 
             await Clients.Others.SendAsync("ScaleObjectOnCanvas", payload);
 

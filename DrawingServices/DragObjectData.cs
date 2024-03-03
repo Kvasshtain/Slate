@@ -1,9 +1,9 @@
 namespace DrawingServices
 {
-    public class DragObjectData
+    public record DragObjectData
     {
-        public string Id {get; set;}
-        public double Left {get; set;}
-        public double Top {get; set;}
+        public required string Id {get; init;}
+        public double Left {get; init;}
+        public double Top {get; init;}
     }
 }

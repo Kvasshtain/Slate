@@ -36,10 +36,10 @@ function makeFromDocumentBodyDropImageZone(hubConnection) {
                 return
 
             let file = files[0];
-            let scale = 1;
             let left = e.pageX - e.target.offsetLeft;
             let top = e.pageY - e.target.offsetTop;
-
+            let scaleX = 1;
+            let scaleY = 1;
 
             var fileReader = new FileReader();
 
@@ -47,10 +47,17 @@ function makeFromDocumentBodyDropImageZone(hubConnection) {
 
                 let id = uuidv4()
 
-                hubConnection.invoke("AddImage", { "Id": id, "Data": fileReader.result, "Scale": scale, "Left": left, "Top": top, })
-                    .catch(function (err) {
-                        return console.error(err.toString());
-                    });
+                hubConnection.invoke("AddObject", { 
+                    "Id": id, 
+                    "Data": fileReader.result, 
+                    "Left": left, 
+                    "Top": top,
+                    "ScaleX": scaleX,
+                    "ScaleY": scaleY,
+                })
+                .catch(function (err) {
+                    return console.error(err.toString());
+                });
             }
 
             fileReader.readAsDataURL(file);
@@ -58,34 +65,45 @@ function makeFromDocumentBodyDropImageZone(hubConnection) {
     }
 }
 
-function AddImageManipulations(hubConnection) {
+function getAllDrawingObjectsFromBackend(hubConnection) {
+    hubConnection.invoke('GetAllDrawingObjects')
+        .catch(function (err) {
+            return console.error(err.toString());
+        });
+}
+
+function addImageManipulations(hubConnection) {
 
     makeFromDocumentBodyDropImageZone(hubConnection);
+    getAllDrawingObjectsFromBackend(hubConnection);
 
-    hubConnection.on("AddImageOnCanvas", (img) => {
+    hubConnection.on("AddObjectOnCanvas", (img) => {
 
         let id = img.id;
         let data = img.data;
-        let scale = img.scale;
         let left = img.left;
         let top = img.top;
+        let scaleX = img.scaleX;
+        let scaleY = img.scaleY;
 
         fabric.util.loadImage(data, (img) => {
             var oImg = new fabric.Image(img);
 
-            oImg.scale(scale).set({
+            oImg.set({
                 id: id,
                 left: left,
                 top: top,
+                scaleX: scaleX,
+                scaleY: scaleY,
             });
-
-            // oImg.on('moving', function () {
-            //     console.log('selected a rectangle');
-            // });
 
             fabCanvas.add(oImg);
             fabCanvas.renderAll();
         });
+    })
+
+    hubConnection.on("AddObjectError", (img) => {
+        //Add error handler!!!
     })
 
     hubConnection.on("MoveObjectOnCanvas", (payload) => {
@@ -108,8 +126,6 @@ function AddImageManipulations(hubConnection) {
         let id = payload.id;
         let left = payload.left;
         let top = payload.top;
-        let width = payload.width;
-        let height = payload.height;
         let scaleX = payload.scaleX;
         let scaleY = payload.scaleY;        
 
@@ -117,7 +133,7 @@ function AddImageManipulations(hubConnection) {
 
         if (!obj) return;
 
-        obj.set({ left: left, top: top, width: width, height: height, scaleX: scaleX, scaleY: scaleY });
+        obj.set({ left: left, top: top, scaleX: scaleX, scaleY: scaleY });
 
         fabCanvas.renderAll();
     })
@@ -135,8 +151,6 @@ function AddImageManipulations(hubConnection) {
         let id = modifiedObject.get('id');
         let left = modifiedObject.get('left');
         let top = modifiedObject.get('top');
-        let width = modifiedObject.get('width');
-        let height = modifiedObject.get('height');
         let scaleX = modifiedObject.get('scaleX');
         let scaleY = modifiedObject.get('scaleY');
 
@@ -147,7 +161,10 @@ function AddImageManipulations(hubConnection) {
                 payload = { "Id": id, "Left": left, "Top": top, };
                 break
             case 'Scale':
-                payload = { "Id": id, "Left": left, "Top": top, "Width": width, "Height": height, "ScaleX": scaleX, "ScaleY": scaleY, };
+            case 'ScaleX':
+            case 'ScaleY':
+                method = "Scale"
+                payload = { "Id": id, "Left": left, "Top": top, "ScaleX": scaleX, "ScaleY": scaleY, };
                 break
             default:
                 return
@@ -160,4 +177,4 @@ function AddImageManipulations(hubConnection) {
     });
 }
 
-export {AddImageManipulations};
+export {addImageManipulations};

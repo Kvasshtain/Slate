@@ -5,14 +5,16 @@ import {
     LogLevel
 } from '@microsoft/signalr';
 
-import { AddImageManipulations } from './ImagesServices.js';
+import { addImageManipulations } from './DrawingServices.js';
 
-window.addEventListener('load', (event) => {
+window.addEventListener('load', async (event) => {
 
     const hubConnection = new HubConnectionBuilder()
         .withUrl("/imageExchanging")
         .configureLogging(LogLevel.Information)
         .build();
 
-    AddImageManipulations(hubConnection);
+    await hubConnection.start();
+ 
+    addImageManipulations(hubConnection);
 })
