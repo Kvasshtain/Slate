@@ -14,7 +14,7 @@ builder.Services.AddSignalR(hubOptions =>
     hubOptions.MaximumReceiveMessageSize = maxMessageBufferSize;
 });
 
-builder.Services.AddSingleton<IBlackboardStoreService, ImageStoreService>();
+builder.Services.AddSingleton<IBlackboardStoreService, BlackboardStoreService>();
 builder.Services.AddSingleton<IPointStoreService, PointStoreService>();
 builder.Services.AddSingleton<IRenderingService, RenderingService>();
 

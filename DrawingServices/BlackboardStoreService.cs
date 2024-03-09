@@ -2,7 +2,7 @@ using SixLabors.ImageSharp;
 
 namespace DrawingServices
 {
-    public class ImageStoreService : IBlackboardStoreService
+    public class BlackboardStoreService : IBlackboardStoreService
     {
         private readonly Dictionary<string, BlackboardObjectData> images = []; // Replace by data base!!!
 
@@ -74,6 +74,15 @@ namespace DrawingServices
             blackboardObject.Top = scaleObjectData.Top;
             blackboardObject.ScaleX = scaleObjectData.ScaleX;
             blackboardObject.ScaleY = scaleObjectData.ScaleY;
+        }
+
+        public void RotateObject(RotateObjectData rotateObjectData)
+        {
+            ArgumentNullException.ThrowIfNull(rotateObjectData);
+
+            var blackboardObject = images[rotateObjectData.Id];
+
+            blackboardObject.Angle = rotateObjectData.Angle;
         }
     }
 }

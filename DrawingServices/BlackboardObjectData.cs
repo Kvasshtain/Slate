@@ -8,5 +8,6 @@ namespace DrawingServices
         public double Top {get; set;}
         public double ScaleX {get; set;}
         public double ScaleY {get; set;}
+        public double Angle {get;set;}
     }
 }

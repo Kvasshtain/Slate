@@ -6,6 +6,8 @@ document.body.append(canvas);
 
 var fabricCanvas = new fabric.Canvas('canvas');
 
+fabricCanvas.isDrawingMode = true;
+
 window.addEventListener('resize', fitFabCanvasToWindowSize, false);
 
 function fitFabCanvasToWindowSize() {

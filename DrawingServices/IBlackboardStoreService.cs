@@ -6,5 +6,6 @@ namespace DrawingServices
         bool TryAddObject(BlackboardObjectData blackboardObjectData);
         void DragObject(DragObjectData dragObjectData);
         void ScaleObject(ScaleObjectData scaleObjectData);
+        void RotateObject(RotateObjectData rotateObjectData);
     }
 }

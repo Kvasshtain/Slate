@@ -5,7 +5,7 @@ import {
     LogLevel
 } from '@microsoft/signalr';
 
-import { addImageManipulations } from './DrawingServices.js';
+import { addImageManipulations } from './drawingServices.js';
 
 window.addEventListener('load', async (event) => {
 
