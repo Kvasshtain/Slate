@@ -1,12 +1,12 @@
 import { fabric } from "fabric";
 
-let canvas = document.createElement('canvas');
-canvas.id = "canvas";
-document.body.append(canvas);
+let originalCanvas = document.createElement('canvas');
+originalCanvas.id = "canvas";
+document.body.append(originalCanvas);
 
 var fabricCanvas = new fabric.Canvas('canvas');
 
-fabricCanvas.isDrawingMode = true;
+//fabricCanvas.isDrawingMode = true;
 
 window.addEventListener('resize', fitFabCanvasToWindowSize, false);
 
@@ -18,4 +18,4 @@ function fitFabCanvasToWindowSize() {
 
 fitFabCanvasToWindowSize();
 
-export default fabricCanvas
+export {fabricCanvas, originalCanvas};

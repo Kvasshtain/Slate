@@ -1,8 +1,9 @@
-import {uuidv4} from './utilities.js';
+import { uuidv4 } from './utilities.js';
 import { fabric } from "fabric";
 
 import { ucFirst, findById } from './utilities.js';
-import { default as fabCanvas } from './fabricCanvas.js';
+import { fabricCanvas as fabCanvas, originalCanvas as origCanvas } from './fabricCanvas.js';
+import { defaultFontProperty, createTextInput } from './textInputServices.js';
 
 function makeFromDocumentBodyDropImageZone(hubConnection) {
 
@@ -45,12 +46,12 @@ function makeFromDocumentBodyDropImageZone(hubConnection) {
 
                 fabric.util.loadImage(fileReader.result, (img) => {
                     let oImg = new fabric.Image(img);
-        
+
                     oImg.set({
                         left: left,
                         top: top,
                     });
-        
+
                     fabCanvas.add(oImg);
                     fabCanvas.renderAll();
                 });
@@ -120,9 +121,9 @@ function addImageManipulations(hubConnection) {
 
         if (!obj) return;
 
-        obj.set({ 
-            left: left, 
-            top: top, 
+        obj.set({
+            left: left,
+            top: top,
         });
 
         fabCanvas.renderAll();
@@ -134,17 +135,17 @@ function addImageManipulations(hubConnection) {
         let left = payload.left;
         let top = payload.top;
         let scaleX = payload.scaleX;
-        let scaleY = payload.scaleY;        
+        let scaleY = payload.scaleY;
 
         let obj = findById(fabCanvas, id);
 
         if (!obj) return;
 
-        obj.set({ 
-            left: left, 
-            top: top, 
-            scaleX: scaleX, 
-            scaleY: scaleY, 
+        obj.set({
+            left: left,
+            top: top,
+            scaleX: scaleX,
+            scaleY: scaleY,
         });
 
         fabCanvas.renderAll();
@@ -153,14 +154,14 @@ function addImageManipulations(hubConnection) {
     hubConnection.on("RotateObjectOnCanvas", (payload) => {
 
         let id = payload.id;
-        let angle = payload.angle;      
+        let angle = payload.angle;
 
         let obj = findById(fabCanvas, id);
 
         if (!obj) return;
 
-        obj.set({ 
-            angle: angle, 
+        obj.set({
+            angle: angle,
         });
 
         fabCanvas.renderAll();
@@ -170,6 +171,53 @@ function addImageManipulations(hubConnection) {
         .catch(function (err) {
             return console.error(err.toString());
         });
+
+    //Type text
+
+    fabCanvas.on('mouse:down', function (options) {
+        if (options.e) {
+
+            let evt = options.e;
+            let textX = evt.pageX;
+            let textY = evt.pageY;
+            let value = '';
+
+            createTextInput(textX, textY, value, defaultFontProperty, function (textArea) {
+
+                let textStyle = textArea.style;
+
+                let val = textArea.value;
+
+                if (val !== null && typeof val !== "undefined") {
+                    val = val.trim();
+                }
+
+                if (!val) {
+                    return;
+                }
+
+                var text = new fabric.Text(val, {
+                    left: textX,
+                    top: textY,
+                    fill: textStyle.color,
+                    fontSize: parseInt(textStyle.fontSize),
+                    fontWeight: textStyle.fontWeight,
+                    textDecoration: textStyle.textDecoration,
+                    shadow: textStyle.shadow,
+                    fontStyle: textStyle.fontStyle,
+                    fontFamily: textStyle.fontFamily,
+                    stroke: textStyle.stroke,
+                    strokeWidth: textStyle.strokeWidth,
+                    textAlign: textStyle.textAlign,
+                    lineHeight: textStyle.lineHeight,
+                    textBackgroundColor: textStyle.textBackgroundColor,
+                });
+
+                fabCanvas.add(text);
+                fabCanvas.renderAll();
+            })
+        }
+    });
 
     fabCanvas.on('object:added', (evt) => {
 
@@ -189,7 +237,7 @@ function addImageManipulations(hubConnection) {
             hubConnection.invoke("AddObject", {
                 "Id": id,
                 "Data": jsonData,
-                "Left": left, 
+                "Left": left,
                 "Top": top,
                 "ScaleX": scaleX,
                 "ScaleY": scaleY,
@@ -198,7 +246,7 @@ function addImageManipulations(hubConnection) {
                     return console.error(err.toString());
                 });
 
-            fabCanvas.isDrawingMode = false; //!!!!
+            //fabCanvas.isDrawingMode = false; //!!!!
         }
         //fabCanvas.isDrawingMode = false; //!!!!
     })
@@ -218,29 +266,29 @@ function addImageManipulations(hubConnection) {
         let payload;
 
         switch (method) {
-            case 'Drag':               
-                payload = { 
-                    "Id": id, 
-                    "Left": left, 
-                    "Top": top, 
+            case 'Drag':
+                payload = {
+                    "Id": id,
+                    "Left": left,
+                    "Top": top,
                 };
                 break
             case 'Scale':
             case 'ScaleX':
             case 'ScaleY':
-                method = "Scale"                
-                payload = { 
-                    "Id": id, 
-                    "Left": left, 
-                    "Top": top, 
-                    "ScaleX": scaleX, 
-                    "ScaleY": scaleY, 
+                method = "Scale"
+                payload = {
+                    "Id": id,
+                    "Left": left,
+                    "Top": top,
+                    "ScaleX": scaleX,
+                    "ScaleY": scaleY,
                 };
                 break
-            case 'Rotate':              
-                payload = { 
-                    "Id": id, 
-                    "Angle": angle, 
+            case 'Rotate':
+                payload = {
+                    "Id": id,
+                    "Angle": angle,
                 };
                 break
             default:
@@ -254,4 +302,4 @@ function addImageManipulations(hubConnection) {
     });
 }
 
-export {addImageManipulations};
+export { addImageManipulations };
