@@ -6,7 +6,7 @@ using DrawingServices;
 
 long maxMessageBufferSize = 524288;
 
-var builder = WebApplication.CreateBuilder(new WebApplicationOptions { WebRootPath = "wwwroot/dist"});
+var builder = WebApplication.CreateBuilder(new WebApplicationOptions { WebRootPath = "wwwroot/dist" });
 
 builder.Services.AddSignalR(hubOptions =>
 {
@@ -14,14 +14,27 @@ builder.Services.AddSignalR(hubOptions =>
     hubOptions.MaximumReceiveMessageSize = maxMessageBufferSize;
 });
 
+builder.Services.AddCors(options => options.AddPolicy("CorsPolicy",
+        builder =>
+        {
+            builder.AllowAnyHeader()
+                   .AllowAnyMethod()
+                   .SetIsOriginAllowed((host) => true)
+                   .AllowCredentials();
+        }));
 builder.Services.AddSingleton<IBlackboardStoreService, BlackboardStoreService>();
 builder.Services.AddSingleton<IPointStoreService, PointStoreService>();
 builder.Services.AddSingleton<IRenderingService, RenderingService>();
 
 var app = builder.Build();
 
+app.UseHttpsRedirection();
+
 app.UseDefaultFiles();
 app.UseStaticFiles();
+
+//app.UseCors(builder => builder.AllowAnyOrigin());
+app.UseCors("CorsPolicy");
 
 // app.MapGet("/Star", async () => 
 // {
@@ -33,9 +46,10 @@ app.UseStaticFiles();
 // });
 
 //app.MapHub<DrawingHub>("/drawing");
-app.MapHub<ImageHub>("/imageExchanging", options => {
-        options.ApplicationMaxBufferSize = maxMessageBufferSize;
-        //options.TransportMaxBufferSize = maxMessageBufferSize;
+app.MapHub<ImageHub>("/imageExchanging", options =>
+{
+    options.ApplicationMaxBufferSize = maxMessageBufferSize;
+    //options.TransportMaxBufferSize = maxMessageBufferSize;
 });
 
 app.Run();

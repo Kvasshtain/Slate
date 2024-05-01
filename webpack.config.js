@@ -2,13 +2,17 @@ const path = require('path')
 const HtmlWebpackPlugin = require('html-webpack-plugin')
 
 var config = {
-    entry: './wwwroot/src/js/index.js',
+    entry: './wwwroot/src/js/index.ts',
     module: {
         rules: [
             { test: /\.svg$/, use: 'svg-inline-loader' },
             { test: /\.css$/, use: ['style-loader', 'css-loader'] },
-            { test: /\.(js)$/, use: 'babel-loader' }
+            { test: /\.(js)$/, use: 'babel-loader' },
+            { test: /\.(ts)$/, use: 'ts-loader' }
         ]
+    },
+    resolve: {
+      extensions: [".ts", ".js"],
     },
     output: {
         path: path.resolve(__dirname, 'wwwroot/dist'),
