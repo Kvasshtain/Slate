@@ -46,12 +46,29 @@ namespace DrawingServices
         {
             ArgumentNullException.ThrowIfNull(blackboardObjectData);
 
-            if(images.ContainsKey(blackboardObjectData.Id))
+            if (images.ContainsKey(blackboardObjectData.Id))
                 return false;
 
             images.Add(blackboardObjectData.Id, blackboardObjectData);
 
             return true;
+        }
+
+        public bool TryDeleteObjectsByIds(string[] deletedFromCanvasObjectsIds)
+        {
+            ArgumentNullException.ThrowIfNull(deletedFromCanvasObjectsIds);
+
+            bool result = true;
+
+            foreach (var id in deletedFromCanvasObjectsIds)
+            {
+                if (!images.Remove(id))
+                {
+                    result = false;
+                }
+            }
+
+            return result;
         }
 
         public void DragObject(DragObjectData dragObjectData)
