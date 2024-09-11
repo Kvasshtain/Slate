@@ -9,6 +9,20 @@ namespace SignalRApp
         private readonly IBlackboardStoreService objectStoreService =
             imageStoreService ?? throw new ArgumentNullException(nameof(imageStoreService));
 
+        public async Task MoveCursor(CursorData cursorData)
+        {
+            // if (objectStoreService.TryAddObject(boardObject))
+            // {
+                await Clients.All.SendAsync("MoveCursorOnCanvas", cursorData);
+                Debug.WriteLine("Move cursor");
+
+                return;
+            //}
+
+            // await Clients.Caller.SendAsync("AddObjectError", boardObject);
+            // Debug.WriteLine("Create object error");
+        }
+         
         public async Task GetAllBoardObjects()
         {
             foreach (var boardObject in objectStoreService.BlackboardObjects)
