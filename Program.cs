@@ -46,7 +46,7 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
                 var accessToken = context.Request.Query["access_token"];
 
                 var path = context.HttpContext.Request.Path;
-                if (!string.IsNullOrEmpty(accessToken) && path.StartsWithSegments("/chat"))
+                if (!string.IsNullOrEmpty(accessToken) && path.StartsWithSegments("/imageExchanging"))
                 {
                     context.Token = accessToken;
                 }
@@ -64,10 +64,11 @@ builder.Services.AddSignalR(hubOptions =>
 builder.Services.AddCors(options => options.AddPolicy("CorsPolicy",
         builder =>
         {
-            builder.AllowAnyHeader()
+            builder.WithOrigins("http://localhost:5173")
+                    .AllowAnyHeader()
                    .AllowAnyMethod()
-                   .SetIsOriginAllowed((host) => true)
-                   .AllowCredentials();
+                   .AllowCredentials()
+                   .SetIsOriginAllowed((host) => true);
         }));
 builder.Services.AddSingleton<IBlackboardStoreService, BlackboardStoreService>();
 builder.Services.AddSingleton<IPointStoreService, PointStoreService>();
@@ -75,6 +76,7 @@ builder.Services.AddSingleton<IRenderingService, RenderingService>();
 
 var app = builder.Build();
 
+app.UseCors("CorsPolicy");
 app.UseHttpsRedirection();
 
 app.UseDefaultFiles();
@@ -84,7 +86,6 @@ app.UseAuthentication();
 app.UseAuthorization();
 
 //app.UseCors(builder => builder.AllowAnyOrigin());
-app.UseCors("CorsPolicy");
 
 // app.MapGet("/Star", async () => 
 // {

@@ -1,9 +1,11 @@
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.SignalR;
 using DrawingServices;
 using System.Diagnostics;
  
 namespace SignalRApp
 {
+    //[Authorize]
     public class DrawingHub : Hub
     {
         private IPointStoreService pointService;

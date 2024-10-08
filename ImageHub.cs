@@ -1,9 +1,11 @@
 using System.Diagnostics;
 using DrawingServices;
 using Microsoft.AspNetCore.SignalR;
+using Microsoft.AspNetCore.Authorization;
 
 namespace SignalRApp
 {
+    [Authorize]
     public class ImageHub(IBlackboardStoreService imageStoreService) : Hub
     {
         private readonly IBlackboardStoreService objectStoreService =
