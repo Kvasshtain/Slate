@@ -1,4 +1,4 @@
-namespace UserServices
+namespace slate.UsersServices
 {
-    record class User(int Id, string Email, string Password, string Name);
+    public record class User(int Id, string Email, string Password, string Name);
 } 
