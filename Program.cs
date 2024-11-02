@@ -4,13 +4,8 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
-using Microsoft.AspNetCore.Authorization;
-using System.Text;
 using slate.UsersServices;
 using AuthenticationAndAuthorization;
-using Microsoft.EntityFrameworkCore;
-using slate.DbServices;
-using System.Diagnostics;
 
 // var render = new ImageRender();
 // render.TestDraw();
@@ -24,10 +19,10 @@ var people = new List<User> //ВЫНЕСИ В ОТДЕЛЬНЫЙ ФАЙЛ И С�
 
 long maxMessageBufferSize = 524288;
 
-var builder = WebApplication.CreateBuilder(new WebApplicationOptions { WebRootPath = "wwwroot/dist" });
+var builder = WebApplication.CreateBuilder();//(new WebApplicationOptions { WebRootPath = "wwwroot/dist" });
 
-string connection = "Host=localhost;Port=5432;Database=usersdb;Username=postgres;Password=Kvaskovu20031986";
-builder.Services.AddDbContext<ApplicationContext>(options => options.UseNpgsql(connection));
+// string connection = "Host=localhost;Port=5432;Database=blackboardObjectsdb;Username=postgres;Password=Kvaskovu20031986";
+// builder.Services.AddDbContext<ApplicationContext>(options => options.UseNpgsql(connection));
 
 builder.Services.AddAuthorization();
 
@@ -77,8 +72,8 @@ builder.Services.AddCors(options => options.AddPolicy("CorsPolicy",
                    .SetIsOriginAllowed((host) => true);
         }));
 builder.Services.AddSingleton<IBlackboardStoreService, BlackboardStoreService>();
-builder.Services.AddSingleton<IPointStoreService, PointStoreService>();
-builder.Services.AddSingleton<IRenderingService, RenderingService>();
+//builder.Services.AddScoped<IPointStoreService, PointStoreService>();
+//builder.Services.AddScoped<IRenderingService, RenderingService>();
 
 var app = builder.Build();
 
@@ -137,32 +132,5 @@ app.MapPost("/login", (User loginData) =>
  
     return Results.Json(response);
 });
-
-
-
-
-//ОТЛАДКА, ПРОВЕРКА БД (УДАЛИТь!!!)
-app.MapGet("/api/users", async (ApplicationContext db) => await db.Users.ToListAsync());
-
-var optionsBuilder = new DbContextOptionsBuilder<ApplicationContext>();
-
-var options = optionsBuilder
-                    .UseNpgsql(connection)
-                    .Options;
-
-using (ApplicationContext db = new ApplicationContext(options))
-{
-    // получаем объекты из бд и выводим на консоль
-    var users = db.Users.ToList();
-    Console.WriteLine("Users list:");
-    foreach (User u in users)
-    {
-        Debug.WriteLine($"!!!!!!!!!!!!!!!!!!!!!!{u.Id}.{u.Name}");
-    }
-}
-//ОТЛАДКА, ПРОВЕРКА БД (УДАЛИТь!!!)
-
-
-
 
 app.Run();

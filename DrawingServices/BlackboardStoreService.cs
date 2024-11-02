@@ -1,71 +1,118 @@
-using SixLabors.ImageSharp;
+using slate.DbServices;
+using Microsoft.EntityFrameworkCore;
 
 namespace DrawingServices
 {
     public class BlackboardStoreService : IBlackboardStoreService
     {
-        private readonly Dictionary<string, BlackboardObjectData> images = []; // Replace by data base!!!
+        private const string connection = "Host=localhost;Port=5432;Database=blackboardObjectsdb;Username=postgres;Password=Kvaskovu20031986";
 
-        public IEnumerable<BlackboardObjectData> BlackboardObjects => images.Values;
+        private static readonly DbContextOptionsBuilder<ApplicationContext> optionsBuilder = new DbContextOptionsBuilder<ApplicationContext>();
+        private static readonly DbContextOptions<ApplicationContext> options = optionsBuilder.UseNpgsql(connection).Options;
 
-        public bool TryAddObject(BlackboardObjectData blackboardObjectData)
+        public IEnumerable<BlackboardObjectData> BlackboardObjects 
+        {
+            get
+            {
+                using var db = new ApplicationContext(options);
+                return db.BlackboardObjectDatas.ToList();
+            }
+        }
+
+        public async Task<bool> TryAddObject(BlackboardObjectData blackboardObjectData)
         {
             ArgumentNullException.ThrowIfNull(blackboardObjectData);
 
-            if (images.ContainsKey(blackboardObjectData.Id))
-                return false;
+            using var db = new ApplicationContext(options);
 
-            images.Add(blackboardObjectData.Id, blackboardObjectData);
+            await db.BlackboardObjectDatas.AddAsync(blackboardObjectData);
+
+            await db.SaveChangesAsync();
 
             return true;
         }
 
-        public bool TryDeleteObjectsByIds(string[] deletedFromCanvasObjectsIds)
+        public async Task<bool> TryDeleteObjectsByIds(string[] deletedFromCanvasObjectsIds)
         {
             ArgumentNullException.ThrowIfNull(deletedFromCanvasObjectsIds);
+
+            using var db = new ApplicationContext(options);
 
             bool result = true;
 
             foreach (var id in deletedFromCanvasObjectsIds)
             {
-                if (!images.Remove(id))
+                BlackboardObjectData? blackboardObject = await db.BlackboardObjectDatas.FirstOrDefaultAsync(obj => obj.Id == id);
+
+                if (blackboardObject is null)
                 {
                     result = false;
+                    continue;
                 }
+
+                db.BlackboardObjectDatas.Remove(blackboardObject);
+                await db.SaveChangesAsync();
             }
 
             return result;
         }
 
-        public void DragObject(DragObjectData dragObjectData)
+        public async void DragObject(DragObjectData dragObjectData)
         {
             ArgumentNullException.ThrowIfNull(dragObjectData);
 
-            var blackboardObject = images[dragObjectData.Id];
+            using var db = new ApplicationContext(options);
+
+            BlackboardObjectData? blackboardObject = await db.BlackboardObjectDatas.FirstOrDefaultAsync(obj => obj.Id == dragObjectData.Id);
+
+            if (blackboardObject is null)
+            {
+                return;
+            }
 
             blackboardObject.Left = dragObjectData.Left;
             blackboardObject.Top = dragObjectData.Top;
+
+            await db.SaveChangesAsync();
         }
 
-        public void ScaleObject(ScaleObjectData scaleObjectData)
+        public async void ScaleObject(ScaleObjectData scaleObjectData)
         {
             ArgumentNullException.ThrowIfNull(scaleObjectData);
 
-            var blackboardObject = images[scaleObjectData.Id];
+            using var db = new ApplicationContext(options);
+
+            BlackboardObjectData? blackboardObject = await db.BlackboardObjectDatas.FirstOrDefaultAsync(obj => obj.Id == scaleObjectData.Id);
+
+            if (blackboardObject is null)
+            {
+                return;
+            }
 
             blackboardObject.Left = scaleObjectData.Left;
             blackboardObject.Top = scaleObjectData.Top;
             blackboardObject.ScaleX = scaleObjectData.ScaleX;
             blackboardObject.ScaleY = scaleObjectData.ScaleY;
+
+            await db.SaveChangesAsync();
         }
 
-        public void RotateObject(RotateObjectData rotateObjectData)
+        public async void RotateObject(RotateObjectData rotateObjectData)
         {
             ArgumentNullException.ThrowIfNull(rotateObjectData);
 
-            var blackboardObject = images[rotateObjectData.Id];
+            using var db = new ApplicationContext(options);
+
+            BlackboardObjectData? blackboardObject = await db.BlackboardObjectDatas.FirstOrDefaultAsync(obj => obj.Id == rotateObjectData.Id);
+
+            if (blackboardObject is null)
+            {
+                return;
+            }
 
             blackboardObject.Angle = rotateObjectData.Angle;
+
+            await db.SaveChangesAsync();await db.SaveChangesAsync();
         }
     }
 }

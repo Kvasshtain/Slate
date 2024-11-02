@@ -13,16 +13,9 @@ namespace SignalRApp
 
         public async Task MoveCursor(CursorData cursorData)
         {
-            // if (objectStoreService.TryAddObject(boardObject))
-            // {
-                await Clients.All.SendAsync("MoveCursorOnCanvas", cursorData);
-                Debug.WriteLine("Move cursor");
-
-                return;
-            //}
-
-            // await Clients.Caller.SendAsync("AddObjectError", boardObject);
-            // Debug.WriteLine("Create object error");
+            await Clients.All.SendAsync("MoveCursorOnCanvas", cursorData);
+            Debug.WriteLine("Move cursor");
+            return;
         }
          
         public async Task GetAllBoardObjects()
@@ -37,7 +30,9 @@ namespace SignalRApp
 
         public async Task AddObject(BlackboardObjectData boardObject)
         {
-            if (objectStoreService.TryAddObject(boardObject))
+            var operationResult = await objectStoreService.TryAddObject(boardObject);
+
+            if (operationResult)
             {
                 await Clients.All.SendAsync("AddObjectOnCanvas", boardObject);
                 Debug.WriteLine("Create object");
@@ -51,7 +46,9 @@ namespace SignalRApp
 
         public async Task DeleteObjectsByIds(string[] deletedObjectsIds)
         {
-            if (objectStoreService.TryDeleteObjectsByIds(deletedObjectsIds))
+            var operationResult = await objectStoreService.TryDeleteObjectsByIds(deletedObjectsIds);
+
+            if (operationResult)
             {
                 await Clients.All.SendAsync("DeleteObjectsOnCanvas", deletedObjectsIds);
                 Debug.WriteLine("Delete objects by Ids");
@@ -60,7 +57,6 @@ namespace SignalRApp
             }
 
             await Clients.Caller.SendAsync("DeleteObjectsError", deletedObjectsIds);
-             
         }
 
         public async Task Drag(DragObjectData payload)
