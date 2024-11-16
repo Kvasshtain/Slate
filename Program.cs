@@ -6,23 +6,15 @@ using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using slate.UsersServices;
 using AuthenticationAndAuthorization;
-
-// var render = new ImageRender();
-// render.TestDraw();
-
-// условная бд с пользователями
-var people = new List<User> //ВЫНЕСИ В ОТДЕЛЬНЫЙ ФАЙЛ И СДЕЛАЙ В ВИДЕ ПОЛНОЦЕННОЙ БД
- {
-    new(1, "tom@gmail.com", "12345", "Вася Пупкин"),
-    new(2, "bob@gmail.com", "55555", "Иванов Петя")
-};
+using slate.DbServices;
+using Microsoft.EntityFrameworkCore;
 
 long maxMessageBufferSize = 524288;
 
 var builder = WebApplication.CreateBuilder();//(new WebApplicationOptions { WebRootPath = "wwwroot/dist" });
 
-// string connection = "Host=localhost;Port=5432;Database=blackboardObjectsdb;Username=postgres;Password=Kvaskovu20031986";
-// builder.Services.AddDbContext<ApplicationContext>(options => options.UseNpgsql(connection));
+string connection = "Host=localhost;Port=5432;Database=usersdb;Username=postgres;Password=Kvaskovu20031986";
+builder.Services.AddDbContext<UserContext>(options => options.UseNpgsql(connection));
 
 builder.Services.AddAuthorization();
 
@@ -86,33 +78,37 @@ app.UseStaticFiles();
 app.UseAuthentication();
 app.UseAuthorization();
 
-//app.UseCors(builder => builder.AllowAnyOrigin());
-
-// app.MapGet("/Star", async () => 
-// {
-//     string path = "test.jpg";
-//     byte[] fileContent = await File.ReadAllBytesAsync(path);  // считываем файл в массив байтов
-//     string contentType = "image/jpg";       // установка mime-типа
-//     string downloadName = "test.jpg";  // установка загружаемого имени
-//     return Results.File(fileContent, contentType, downloadName);
-// });
-
 //app.MapHub<DrawingHub>("/drawing");
 app.MapHub<ImageHub>("/imageExchanging", options =>
 {
+    ArgumentNullException.ThrowIfNull(options);
+
     options.ApplicationMaxBufferSize = maxMessageBufferSize;
     //options.TransportMaxBufferSize = maxMessageBufferSize;
 });
 
-app.MapPost("/login", (User loginData) => 
+app.MapPost("/registration", async (User regData, UserContext db) => 
 {
-    // находим пользователя 
-    User? user = people.FirstOrDefault(p => p.Email == loginData.Email && p.Password == loginData.Password);
-    // если пользователь не найден, отправляем статусный код 401
+    ArgumentNullException.ThrowIfNull(regData);
+    ArgumentNullException.ThrowIfNull(db);
+
+    await db.Users.AddAsync(regData);
+    await db.SaveChangesAsync();
+
+    return regData;
+});
+
+app.MapPost("/login", async (User loginData, UserContext db) => 
+{
+    ArgumentNullException.ThrowIfNull(loginData);
+    ArgumentNullException.ThrowIfNull(db);
+
+    User? user = await db.Users.FirstOrDefaultAsync(p => p.Email == loginData.Email && p.Password == loginData.Password);
+
     if(user is null) return Results.Unauthorized();
      
-    var claims = new List<Claim> {new Claim(ClaimTypes.Name, user.Email) };
-    // создаем JWT-токен
+    var claims = new List<Claim> {new(ClaimTypes.Email, user.Email) };
+
     var jwt = new JwtSecurityToken(
             issuer: AuthOptions.ISSUER,
             audience: AuthOptions.AUDIENCE,
@@ -120,8 +116,7 @@ app.MapPost("/login", (User loginData) =>
             expires: DateTime.UtcNow.Add(TimeSpan.FromMinutes(2)),
             signingCredentials: new SigningCredentials(AuthOptions.GetSymmetricSecurityKey(), SecurityAlgorithms.HmacSha256));
     var encodedJwt = new JwtSecurityTokenHandler().WriteToken(jwt);
- 
-    // формируем ответ
+
     var response = new
     {
         id = user.Id,

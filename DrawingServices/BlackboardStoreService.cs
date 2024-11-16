@@ -7,112 +7,112 @@ namespace DrawingServices
     {
         private const string connection = "Host=localhost;Port=5432;Database=blackboardObjectsdb;Username=postgres;Password=Kvaskovu20031986";
 
-        private static readonly DbContextOptionsBuilder<ApplicationContext> optionsBuilder = new DbContextOptionsBuilder<ApplicationContext>();
-        private static readonly DbContextOptions<ApplicationContext> options = optionsBuilder.UseNpgsql(connection).Options;
+        private static readonly DbContextOptionsBuilder<BlackboardObjectContext> optionsBuilder = new();
+        private static readonly DbContextOptions<BlackboardObjectContext> options = optionsBuilder.UseNpgsql(connection).Options;
 
-        public IEnumerable<BlackboardObjectData> BlackboardObjects 
-        {
-            get
-            {
-                using var db = new ApplicationContext(options);
-                return db.BlackboardObjectDatas.ToList();
-            }
-        }
+        public IEnumerable<BlackboardObjectData> BlackboardObjects => [.. new BlackboardObjectContext(options).BlackboardObjectDatas];
 
         public async Task<bool> TryAddObject(BlackboardObjectData blackboardObjectData)
         {
             ArgumentNullException.ThrowIfNull(blackboardObjectData);
 
-            using var db = new ApplicationContext(options);
+            using var db = new BlackboardObjectContext(options);
 
             await db.BlackboardObjectDatas.AddAsync(blackboardObjectData);
 
-            await db.SaveChangesAsync();
+            int objCount = await db.SaveChangesAsync();
+
+            if (objCount != 1) return false;
 
             return true;
         }
 
-        public async Task<bool> TryDeleteObjectsByIds(string[] deletedFromCanvasObjectsIds)
+        public async Task<bool> TryDeleteObjectById(string deletedFromCanvasObjectId)
         {
-            ArgumentNullException.ThrowIfNull(deletedFromCanvasObjectsIds);
+            ArgumentNullException.ThrowIfNull(deletedFromCanvasObjectId);
 
-            using var db = new ApplicationContext(options);
+            using var db = new BlackboardObjectContext(options);
 
-            bool result = true;
+            BlackboardObjectData? blackboardObject = await db.BlackboardObjectDatas.FirstOrDefaultAsync(obj => obj.Id == deletedFromCanvasObjectId);
 
-            foreach (var id in deletedFromCanvasObjectsIds)
-            {
-                BlackboardObjectData? blackboardObject = await db.BlackboardObjectDatas.FirstOrDefaultAsync(obj => obj.Id == id);
+            if (blackboardObject is null)
+                return false;
 
-                if (blackboardObject is null)
-                {
-                    result = false;
-                    continue;
-                }
+            db.BlackboardObjectDatas.Remove(blackboardObject);
 
-                db.BlackboardObjectDatas.Remove(blackboardObject);
-                await db.SaveChangesAsync();
-            }
+            int objCount = await db.SaveChangesAsync();
 
-            return result;
+            if (objCount != 1)
+                return false;
+
+            return true;
         }
 
-        public async void DragObject(DragObjectData dragObjectData)
+        public async Task<bool> DragObject(DragObjectData dragObjectData)
         {
             ArgumentNullException.ThrowIfNull(dragObjectData);
 
-            using var db = new ApplicationContext(options);
+            using var db = new BlackboardObjectContext(options);
 
             BlackboardObjectData? blackboardObject = await db.BlackboardObjectDatas.FirstOrDefaultAsync(obj => obj.Id == dragObjectData.Id);
 
             if (blackboardObject is null)
-            {
-                return;
-            }
+                return false;
 
             blackboardObject.Left = dragObjectData.Left;
             blackboardObject.Top = dragObjectData.Top;
 
-            await db.SaveChangesAsync();
+            int objCount = await db.SaveChangesAsync();
+
+            if (objCount != 1)
+                return false;
+
+            return true;
         }
 
-        public async void ScaleObject(ScaleObjectData scaleObjectData)
+        public async Task<bool> ScaleObject(ScaleObjectData scaleObjectData)
         {
             ArgumentNullException.ThrowIfNull(scaleObjectData);
 
-            using var db = new ApplicationContext(options);
+            using var db = new BlackboardObjectContext(options);
 
             BlackboardObjectData? blackboardObject = await db.BlackboardObjectDatas.FirstOrDefaultAsync(obj => obj.Id == scaleObjectData.Id);
 
             if (blackboardObject is null)
-            {
-                return;
-            }
+                return false;
 
             blackboardObject.Left = scaleObjectData.Left;
             blackboardObject.Top = scaleObjectData.Top;
             blackboardObject.ScaleX = scaleObjectData.ScaleX;
             blackboardObject.ScaleY = scaleObjectData.ScaleY;
 
-            await db.SaveChangesAsync();
+            int objCount = await db.SaveChangesAsync();
+
+            if (objCount != 1)
+                return false;
+
+            return true;
         }
 
-        public async void RotateObject(RotateObjectData rotateObjectData)
+        public async Task<bool> RotateObject(RotateObjectData rotateObjectData)
         {
             ArgumentNullException.ThrowIfNull(rotateObjectData);
 
-            using var db = new ApplicationContext(options);
+            using var db = new BlackboardObjectContext(options);
 
             BlackboardObjectData? blackboardObject = await db.BlackboardObjectDatas.FirstOrDefaultAsync(obj => obj.Id == rotateObjectData.Id);
 
             if (blackboardObject is null)
-            {
-                return;
-            }
+                return false;
 
             blackboardObject.Angle = rotateObjectData.Angle;
 
-            await db.SaveChangesAsync();await db.SaveChangesAsync();
+            int objCount = await db.SaveChangesAsync();await db.SaveChangesAsync();
+
+            if (objCount != 1)
+                return false;
+
+            return true;
         }
     }
 }

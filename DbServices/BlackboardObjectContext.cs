@@ -3,11 +3,11 @@ using Microsoft.EntityFrameworkCore;
 
 namespace slate.DbServices
 {
-    public class ApplicationContext : DbContext
+    public class BlackboardObjectContext : DbContext
     {
         public DbSet<BlackboardObjectData> BlackboardObjectDatas { get; set; } = null!;
 
-        public ApplicationContext(DbContextOptions<ApplicationContext> options)
+        public BlackboardObjectContext(DbContextOptions<BlackboardObjectContext> options)
             : base(options) => Database.EnsureCreated();
     }
 }

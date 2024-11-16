@@ -5,17 +5,11 @@ using System.Diagnostics;
  
 namespace SignalRApp
 {
-    //[Authorize]
-    public class DrawingHub : Hub
+    [Authorize]
+    public class DrawingHub(IPointStoreService pointService, IRenderingService renderingService) : Hub
     {
-        private IPointStoreService pointService;
-        private IRenderingService renderingService;
-
-        public DrawingHub(IPointStoreService pointService, IRenderingService renderingService)
-        { 
-            this.pointService = pointService ?? throw new ArgumentNullException(nameof(pointService));
-            this.renderingService = renderingService ?? throw new ArgumentNullException(nameof(renderingService));
-        }
+        private IPointStoreService pointService = pointService ?? throw new ArgumentNullException(nameof(pointService));
+        private IRenderingService renderingService = renderingService ?? throw new ArgumentNullException(nameof(renderingService));
 
         public async Task Send(DrawingAction drawingAction)
         {          

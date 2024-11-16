@@ -13,6 +13,8 @@ namespace SignalRApp
 
         public async Task MoveCursor(CursorData cursorData)
         {
+            ArgumentNullException.ThrowIfNull(cursorData);
+
             await Clients.All.SendAsync("MoveCursorOnCanvas", cursorData);
             Debug.WriteLine("Move cursor");
             return;
@@ -30,9 +32,9 @@ namespace SignalRApp
 
         public async Task AddObject(BlackboardObjectData boardObject)
         {
-            var operationResult = await objectStoreService.TryAddObject(boardObject);
+            ArgumentNullException.ThrowIfNull(boardObject);
 
-            if (operationResult)
+            if (await objectStoreService.TryAddObject(boardObject))
             {
                 await Clients.All.SendAsync("AddObjectOnCanvas", boardObject);
                 Debug.WriteLine("Create object");
@@ -46,44 +48,66 @@ namespace SignalRApp
 
         public async Task DeleteObjectsByIds(string[] deletedObjectsIds)
         {
-            var operationResult = await objectStoreService.TryDeleteObjectsByIds(deletedObjectsIds);
+            ArgumentNullException.ThrowIfNull(deletedObjectsIds);
 
-            if (operationResult)
+            foreach (var id in deletedObjectsIds)
             {
-                await Clients.All.SendAsync("DeleteObjectsOnCanvas", deletedObjectsIds);
-                Debug.WriteLine("Delete objects by Ids");
+                if (!await objectStoreService.TryDeleteObjectById(id))
+                {
+                    await Clients.Caller.SendAsync("DeleteObjectsError", id);
+                    continue;
+                }
 
-                return;
+                await Clients.All.SendAsync("DeleteObjectsOnCanvas", id);
             }
-
-            await Clients.Caller.SendAsync("DeleteObjectsError", deletedObjectsIds);
         }
 
         public async Task Drag(DragObjectData payload)
         {
-            objectStoreService.DragObject(payload);
+            ArgumentNullException.ThrowIfNull(payload);
 
-            await Clients.Others.SendAsync("MoveObjectOnCanvas", payload);
+            if (await objectStoreService.DragObject(payload))
+            {
+                await Clients.Others.SendAsync("MoveObjectOnCanvas", payload);
+                Debug.WriteLine("Drag object");
 
-            Debug.WriteLine("Drag object");
+                return;
+            }
+
+            await Clients.Caller.SendAsync("DragObjectError", payload);
+            Debug.WriteLine("Drag object error");
         }
 
         public async Task Scale(ScaleObjectData payload)
         {
-            objectStoreService.ScaleObject(payload);
+            ArgumentNullException.ThrowIfNull(payload);
 
-            await Clients.Others.SendAsync("ScaleObjectOnCanvas", payload);
+            if (await objectStoreService.ScaleObject(payload))
+            {
+                await Clients.Others.SendAsync("ScaleObjectOnCanvas", payload);
+                Debug.WriteLine("Scale object");
 
-            Debug.WriteLine("Scale object");
+                return;
+            }
+
+            await Clients.Caller.SendAsync("ScaleObjectError", payload);
+            Debug.WriteLine("Scale object error");
         }
 
         public async Task Rotate(RotateObjectData payload)
         {
-            objectStoreService.RotateObject(payload);
+            ArgumentNullException.ThrowIfNull(payload);
+            
+            if(await objectStoreService.RotateObject(payload))
+            {
+                await Clients.Others.SendAsync("RotateObjectOnCanvas", payload);
+                Debug.WriteLine("Rotate object");
 
-            await Clients.Others.SendAsync("RotateObjectOnCanvas", payload);
+                return;
+            }
 
-            Debug.WriteLine("Rotate object");
+            await Clients.Caller.SendAsync("RotateObjectError", payload);
+            Debug.WriteLine("Rotate object error");
         }
     }
 }
