@@ -1,48 +1,53 @@
+using System.Diagnostics;
 using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.Drawing;
 using SixLabors.ImageSharp.Drawing.Processing;
 using SixLabors.ImageSharp.PixelFormats;
 using SixLabors.ImageSharp.Processing;
-using System.Diagnostics;
-
 
 namespace DrawingServices
 {
-    public class RenderingService(IPointStoreService pointStoreService, IBlackboardStoreService imageStoreService) : IRenderingService 
+    public class RenderingService(
+        IPointStoreService pointStoreService,
+        IBlackboardStoreService imageStoreService
+    ) : IRenderingService
     {
-        private IPointStoreService pointStoreService = pointStoreService ?? throw new ArgumentNullException(nameof(pointStoreService));
-        private IBlackboardStoreService imageStoreService = imageStoreService ?? throw new ArgumentNullException(nameof(imageStoreService));
+        private IPointStoreService pointStoreService =
+            pointStoreService ?? throw new ArgumentNullException(nameof(pointStoreService));
+        private IBlackboardStoreService imageStoreService =
+            imageStoreService ?? throw new ArgumentNullException(nameof(imageStoreService));
 
         public string Render()
         {
             //Debug.WriteLine($"Vector.IsHardwareAccelerated = {Vector.IsHardwareAccelerated}");
             Stopwatch stopWatch = new Stopwatch();
             stopWatch.Start();
-            
+
             string resultData;
 
             int width = 1000;
             int height = 1000;
-            
+
             using (var stream = new MemoryStream())
-            using (Image<Rgba32> image = new(width, height)) 
+            using (Image<Rgba32> image = new(width, height))
             {
-                DrawingOptions options = new()
-                {
-                    GraphicsOptions = new()
+                DrawingOptions options =
+                    new()
                     {
-                        ColorBlendingMode  = PixelColorBlendingMode.Multiply
-                    }
-                };
-                
+                        GraphicsOptions = new()
+                        {
+                            ColorBlendingMode = PixelColorBlendingMode.Multiply
+                        }
+                    };
+
                 //PatternBrush brush = Brushes.Horizontal(Color.Red, Color.Blue);
                 SolidPen pen = Pens.Solid(Color.Green, 5);
-                
+
                 //var star = new Star(x: 100.0f, y: 100.0f, prongs: 5, innerRadii: 20.0f, outerRadii:30.0f);
 
                 // foreach (var imageData in imageStoreService.Images)
                 // {
-                //     using (SixLabors.ImageSharp.Image smallImage = SixLabors.ImageSharp.Image.Load(imageData.Path)) 
+                //     using (SixLabors.ImageSharp.Image smallImage = SixLabors.ImageSharp.Image.Load(imageData.Path))
                 //     {
                 //         // probably it's needed to add image resizing
                 //         image.Mutate(x => x
@@ -53,16 +58,18 @@ namespace DrawingServices
                 foreach (var point in pointStoreService.Points)
                 {
                     var location = new PointF((float)point.X, (float)point.Y);
-                    
+
                     var ellipsePolygon = new EllipsePolygon(location, new SizeF(1, 1));
-                    image.Mutate(x=> x/*.Fill(options, brush, ellipsePolygon)*/
-                               .Draw(options, pen, ellipsePolygon));
+                    image.Mutate(x =>
+                        x /*.Fill(options, brush, ellipsePolygon)*/
+                        .Draw(options, pen, ellipsePolygon)
+                    );
                 }
 
                 // image.Mutate(x=> x.Fill(options, brush, star)
                 //                .Draw(options, pen, star));
-            
-                image.SaveAsJpeg(stream);//Save("test.jpg");
+
+                image.SaveAsJpeg(stream); //Save("test.jpg");
 
                 byte[] bytes = stream.ToArray();
 
@@ -70,10 +77,10 @@ namespace DrawingServices
 
                 // string path = "test.jpg";
                 // byte[] bytes = await File.ReadAllBytesAsync(path);  // считываем файл в массив байтов
-                
+
                 // var data = Convert.ToBase64String(bytes);
-    
-                // await this.Clients.All.SendAsync("Receive", data);   
+
+                // await this.Clients.All.SendAsync("Receive", data);
             }
 
             stopWatch.Stop();
@@ -82,35 +89,32 @@ namespace DrawingServices
             return resultData;
         }
 
-
         public void TestDraw()
         {
             int width = 640;
             int height = 480;
 
             using Image<Rgba32> image = new(width, height);
-            
-            DrawingOptions options = new()
-            {
-                GraphicsOptions = new()
+
+            DrawingOptions options =
+                new()
                 {
-                    ColorBlendingMode = PixelColorBlendingMode.Multiply
-                }
-            };
+                    GraphicsOptions = new() { ColorBlendingMode = PixelColorBlendingMode.Multiply }
+                };
 
             PatternBrush brush = Brushes.Horizontal(Color.Red, Color.Blue);
             PatternPen pen = Pens.DashDot(Color.Green, 5);
-            var star = new Star(x: 100.0f, y: 100.0f, prongs: 5, innerRadii: 20.0f, outerRadii: 30.0f);
+            var star = new Star(
+                x: 100.0f,
+                y: 100.0f,
+                prongs: 5,
+                innerRadii: 20.0f,
+                outerRadii: 30.0f
+            );
 
-            image.Mutate(x => x.Fill(options, brush, star)
-                           .Draw(options, pen, star));
+            image.Mutate(x => x.Fill(options, brush, star).Draw(options, pen, star));
 
             image.Save("test.jpg");
         }
     }
 }
-
-
-
-
-

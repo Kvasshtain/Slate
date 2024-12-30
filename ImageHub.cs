@@ -1,7 +1,7 @@
 using System.Diagnostics;
 using DrawingServices;
-using Microsoft.AspNetCore.SignalR;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.SignalR;
 
 namespace SignalRApp
 {
@@ -19,7 +19,7 @@ namespace SignalRApp
             Debug.WriteLine("Move cursor");
             return;
         }
-         
+
         public async Task GetAllBoardObjects()
         {
             foreach (var boardObject in objectStoreService.BlackboardObjects)
@@ -97,8 +97,8 @@ namespace SignalRApp
         public async Task Rotate(RotateObjectData payload)
         {
             ArgumentNullException.ThrowIfNull(payload);
-            
-            if(await objectStoreService.RotateObject(payload))
+
+            if (await objectStoreService.RotateObject(payload))
             {
                 await Clients.Others.SendAsync("RotateObjectOnCanvas", payload);
                 Debug.WriteLine("Rotate object");

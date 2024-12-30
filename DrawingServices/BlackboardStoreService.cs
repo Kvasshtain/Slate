@@ -1,28 +1,33 @@
-using slate.DbServices;
 using Microsoft.EntityFrameworkCore;
+using slate.DbServices;
 
 namespace DrawingServices
 {
     public class BlackboardStoreService : IBlackboardStoreService
     {
-        private const string connection = "Host=localhost;Port=5432;Database=blackboardObjectsdb;Username=postgres;Password=Kvaskovu20031986";
+        private const string connection =
+            "Host=localhost;Port=5432;Database=slate;Username=postgres;Password=Kvaskovu20031986";
 
-        private static readonly DbContextOptionsBuilder<BlackboardObjectContext> optionsBuilder = new();
-        private static readonly DbContextOptions<BlackboardObjectContext> options = optionsBuilder.UseNpgsql(connection).Options;
+        private static readonly DbContextOptionsBuilder<ApplicationContext> optionsBuilder = new();
+        private static readonly DbContextOptions<ApplicationContext> options = optionsBuilder
+            .UseNpgsql(connection)
+            .Options;
 
-        public IEnumerable<BlackboardObjectData> BlackboardObjects => [.. new BlackboardObjectContext(options).BlackboardObjectDatas];
+        public IEnumerable<BlackboardObjectData> BlackboardObjects =>
+            [.. new ApplicationContext(options).BlackboardObjectDatas];
 
         public async Task<bool> TryAddObject(BlackboardObjectData blackboardObjectData)
         {
             ArgumentNullException.ThrowIfNull(blackboardObjectData);
 
-            using var db = new BlackboardObjectContext(options);
+            using var db = new ApplicationContext(options);
 
             await db.BlackboardObjectDatas.AddAsync(blackboardObjectData);
 
             int objCount = await db.SaveChangesAsync();
 
-            if (objCount != 1) return false;
+            if (objCount != 1)
+                return false;
 
             return true;
         }
@@ -31,9 +36,12 @@ namespace DrawingServices
         {
             ArgumentNullException.ThrowIfNull(deletedFromCanvasObjectId);
 
-            using var db = new BlackboardObjectContext(options);
+            using var db = new ApplicationContext(options);
 
-            BlackboardObjectData? blackboardObject = await db.BlackboardObjectDatas.FirstOrDefaultAsync(obj => obj.Id == deletedFromCanvasObjectId);
+            BlackboardObjectData? blackboardObject =
+                await db.BlackboardObjectDatas.FirstOrDefaultAsync(obj =>
+                    obj.Id == deletedFromCanvasObjectId
+                );
 
             if (blackboardObject is null)
                 return false;
@@ -52,9 +60,12 @@ namespace DrawingServices
         {
             ArgumentNullException.ThrowIfNull(dragObjectData);
 
-            using var db = new BlackboardObjectContext(options);
+            using var db = new ApplicationContext(options);
 
-            BlackboardObjectData? blackboardObject = await db.BlackboardObjectDatas.FirstOrDefaultAsync(obj => obj.Id == dragObjectData.Id);
+            BlackboardObjectData? blackboardObject =
+                await db.BlackboardObjectDatas.FirstOrDefaultAsync(obj =>
+                    obj.Id == dragObjectData.Id
+                );
 
             if (blackboardObject is null)
                 return false;
@@ -74,9 +85,12 @@ namespace DrawingServices
         {
             ArgumentNullException.ThrowIfNull(scaleObjectData);
 
-            using var db = new BlackboardObjectContext(options);
+            using var db = new ApplicationContext(options);
 
-            BlackboardObjectData? blackboardObject = await db.BlackboardObjectDatas.FirstOrDefaultAsync(obj => obj.Id == scaleObjectData.Id);
+            BlackboardObjectData? blackboardObject =
+                await db.BlackboardObjectDatas.FirstOrDefaultAsync(obj =>
+                    obj.Id == scaleObjectData.Id
+                );
 
             if (blackboardObject is null)
                 return false;
@@ -98,16 +112,20 @@ namespace DrawingServices
         {
             ArgumentNullException.ThrowIfNull(rotateObjectData);
 
-            using var db = new BlackboardObjectContext(options);
+            using var db = new ApplicationContext(options);
 
-            BlackboardObjectData? blackboardObject = await db.BlackboardObjectDatas.FirstOrDefaultAsync(obj => obj.Id == rotateObjectData.Id);
+            BlackboardObjectData? blackboardObject =
+                await db.BlackboardObjectDatas.FirstOrDefaultAsync(obj =>
+                    obj.Id == rotateObjectData.Id
+                );
 
             if (blackboardObject is null)
                 return false;
 
             blackboardObject.Angle = rotateObjectData.Angle;
 
-            int objCount = await db.SaveChangesAsync();await db.SaveChangesAsync();
+            int objCount = await db.SaveChangesAsync();
+            await db.SaveChangesAsync();
 
             if (objCount != 1)
                 return false;
