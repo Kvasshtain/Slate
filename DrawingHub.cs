@@ -1,17 +1,17 @@
 using System.Diagnostics;
-using DrawingServices;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.SignalR;
+using slate.DrawingServices;
 
-namespace SignalRApp
+namespace slate
 {
     [Authorize]
     public class DrawingHub(IPointStoreService pointService, IRenderingService renderingService)
         : Hub
     {
-        private IPointStoreService pointService =
+        private readonly IPointStoreService pointService =
             pointService ?? throw new ArgumentNullException(nameof(pointService));
-        private IRenderingService renderingService =
+        private readonly IRenderingService renderingService =
             renderingService ?? throw new ArgumentNullException(nameof(renderingService));
 
         public async Task Send(DrawingAction drawingAction)

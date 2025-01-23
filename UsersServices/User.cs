@@ -1,5 +1,5 @@
 using System.Text.Json.Serialization;
-using BlackboardsServices;
+using slate.BlackboardsServices;
 
 namespace slate.UsersServices
 {

@@ -1,7 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using slate.DbServices;
 
-namespace DrawingServices
+namespace slate.DrawingServices
 {
     public class BlackboardStoreService : IBlackboardStoreService
     {
@@ -13,57 +13,69 @@ namespace DrawingServices
             .UseNpgsql(connection)
             .Options;
 
-        public IEnumerable<BlackboardObjectData> BlackboardObjects =>
-            [.. new ApplicationContext(options).BlackboardObjectDatas];
+        public IEnumerable<BlackboardObjectData> GetBlackboardObjects(int blackboardId) =>
+            [
+                .. new ApplicationContext(options).BlackboardObjectData.Where(item => item.BlackboardId == blackboardId)
+            ];
 
-        public async Task<bool> TryAddObject(BlackboardObjectData blackboardObjectData)
+        public async Task<BlackboardObjectData?> GetBlackboardObjectByIdAsync(int id)
+        {
+            await using var db = new ApplicationContext(options);
+
+            var blackboardObjectData = db.BlackboardObjectData;
+
+            return await blackboardObjectData.FindAsync(id);
+        }
+
+        public async Task<int?> GetObjectBlackboardIdAsync(int id)
+        {
+            var blackboardObject = await GetBlackboardObjectByIdAsync(id);
+
+            return blackboardObject?.BlackboardId;
+        }
+
+        public async Task<bool> TryAddObjectAsync(BlackboardObjectData blackboardObjectData)
         {
             ArgumentNullException.ThrowIfNull(blackboardObjectData);
 
-            using var db = new ApplicationContext(options);
+            await using var db = new ApplicationContext(options);
 
-            await db.BlackboardObjectDatas.AddAsync(blackboardObjectData);
+            await db.BlackboardObjectData.AddAsync(blackboardObjectData);
 
             int objCount = await db.SaveChangesAsync();
 
-            if (objCount != 1)
-                return false;
-
-            return true;
+            return objCount == 1;
         }
 
-        public async Task<bool> TryDeleteObjectById(string deletedFromCanvasObjectId)
+        public async Task<bool> TryDeleteObjectByIdAsync(int deletedFromCanvasObjectId)
         {
             ArgumentNullException.ThrowIfNull(deletedFromCanvasObjectId);
 
-            using var db = new ApplicationContext(options);
+            await using var db = new ApplicationContext(options);
 
-            BlackboardObjectData? blackboardObject =
-                await db.BlackboardObjectDatas.FirstOrDefaultAsync(obj =>
+            var blackboardObject =
+                await db.BlackboardObjectData.FirstOrDefaultAsync(obj =>
                     obj.Id == deletedFromCanvasObjectId
                 );
 
             if (blackboardObject is null)
                 return false;
 
-            db.BlackboardObjectDatas.Remove(blackboardObject);
+            db.BlackboardObjectData.Remove(blackboardObject);
 
             int objCount = await db.SaveChangesAsync();
 
-            if (objCount != 1)
-                return false;
-
-            return true;
+            return objCount == 1;
         }
 
-        public async Task<bool> DragObject(DragObjectData dragObjectData)
+        public async Task<bool> DragObjectAsync(DragObjectData dragObjectData)
         {
             ArgumentNullException.ThrowIfNull(dragObjectData);
 
-            using var db = new ApplicationContext(options);
+            await using var db = new ApplicationContext(options);
 
-            BlackboardObjectData? blackboardObject =
-                await db.BlackboardObjectDatas.FirstOrDefaultAsync(obj =>
+            var blackboardObject =
+                await db.BlackboardObjectData.FirstOrDefaultAsync(obj =>
                     obj.Id == dragObjectData.Id
                 );
 
@@ -75,20 +87,17 @@ namespace DrawingServices
 
             int objCount = await db.SaveChangesAsync();
 
-            if (objCount != 1)
-                return false;
-
-            return true;
+            return objCount == 1;
         }
 
-        public async Task<bool> ScaleObject(ScaleObjectData scaleObjectData)
+        public async Task<bool> ScaleObjectAsync(ScaleObjectData scaleObjectData)
         {
             ArgumentNullException.ThrowIfNull(scaleObjectData);
 
-            using var db = new ApplicationContext(options);
+            await using var db = new ApplicationContext(options);
 
-            BlackboardObjectData? blackboardObject =
-                await db.BlackboardObjectDatas.FirstOrDefaultAsync(obj =>
+            var blackboardObject =
+                await db.BlackboardObjectData.FirstOrDefaultAsync(obj =>
                     obj.Id == scaleObjectData.Id
                 );
 
@@ -102,20 +111,17 @@ namespace DrawingServices
 
             int objCount = await db.SaveChangesAsync();
 
-            if (objCount != 1)
-                return false;
-
-            return true;
+            return objCount == 1;
         }
 
-        public async Task<bool> RotateObject(RotateObjectData rotateObjectData)
+        public async Task<bool> RotateObjectAsync(RotateObjectData rotateObjectData)
         {
             ArgumentNullException.ThrowIfNull(rotateObjectData);
 
-            using var db = new ApplicationContext(options);
+            await using var db = new ApplicationContext(options);
 
-            BlackboardObjectData? blackboardObject =
-                await db.BlackboardObjectDatas.FirstOrDefaultAsync(obj =>
+            var blackboardObject =
+                await db.BlackboardObjectData.FirstOrDefaultAsync(obj =>
                     obj.Id == rotateObjectData.Id
                 );
 
@@ -127,10 +133,7 @@ namespace DrawingServices
             int objCount = await db.SaveChangesAsync();
             await db.SaveChangesAsync();
 
-            if (objCount != 1)
-                return false;
-
-            return true;
+            return objCount == 1;
         }
     }
 }

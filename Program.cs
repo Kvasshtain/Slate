@@ -1,37 +1,20 @@
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
-using AuthenticationAndAuthorization;
-using BlackboardsServices;
-using DrawingServices;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
-using SignalRApp;
+using slate;
+using slate.AuthenticationAndAuthorization;
+using slate.BlackboardsServices;
 using slate.DbServices;
+using slate.DrawingServices;
 using slate.UsersServices;
 
-long maxMessageBufferSize = 524288;
-
-// var testDb = new List<Blackboard> //Перенести в настоящую БД
-// {
-//     new()
-//     {
-//         Id = 0,
-//         Name = "Board1",
-//         Description = "Some board"
-//     },
-//     new()
-//     {
-//         Id = 1,
-//         Name = "Board2",
-//         Description = "Another board"
-//     },
-// };
+const long maxMessageBufferSize = 524288;
 
 var builder = WebApplication.CreateBuilder(); //(new WebApplicationOptions { WebRootPath = "wwwroot/dist" });
 
-string connection =
-    "Host=localhost;Port=5432;Database=slate;Username=postgres;Password=Kvaskovu20031986";
+const string connection = "Host=localhost;Port=5432;Database=slate;Username=postgres;Password=Kvaskovu20031986";
 builder.Services.AddDbContext<ApplicationContext>(options => options.UseNpgsql(connection));
 
 builder.Services.AddAuthorization();
@@ -43,9 +26,9 @@ builder
         options.TokenValidationParameters = new TokenValidationParameters
         {
             ValidateIssuer = true,
-            ValidIssuer = AuthOptions.ISSUER,
+            ValidIssuer = AuthOptions.Issuer,
             ValidateAudience = true,
-            ValidAudience = AuthOptions.AUDIENCE,
+            ValidAudience = AuthOptions.Audience,
             ValidateLifetime = true,
             IssuerSigningKey = AuthOptions.GetSymmetricSecurityKey(),
             ValidateIssuerSigningKey = true
@@ -79,14 +62,14 @@ builder.Services.AddSignalR(hubOptions =>
 builder.Services.AddCors(options =>
     options.AddPolicy(
         "CorsPolicy",
-        builder =>
+        policyBuilder =>
         {
-            builder
+            policyBuilder
                 .WithOrigins("http://localhost:5173")
                 .AllowAnyHeader()
                 .AllowAnyMethod()
                 .AllowCredentials()
-                .SetIsOriginAllowed((host) => true);
+                .SetIsOriginAllowed((_) => true);
         }
     )
 );
@@ -139,18 +122,19 @@ app.MapPost(
         ArgumentNullException.ThrowIfNull(loginData);
         ArgumentNullException.ThrowIfNull(db);
 
-        User? user = await db.Users.FirstOrDefaultAsync(p =>
+        var user = await db.Users.FirstOrDefaultAsync(p =>
             p.Email == loginData.Email && p.Password == loginData.Password
         );
 
         if (user is null)
             return Results.Unauthorized();
 
-        var claims = new List<Claim> { new(ClaimTypes.Email, user.Email) };
+        if (user is not { Email: not null, Name: not null }) return null;
+        var claims = new List<Claim> { new(ClaimTypes.Email, user.Email), new(ClaimTypes.Name, user.Name) };
 
         var jwt = new JwtSecurityToken(
-            issuer: AuthOptions.ISSUER,
-            audience: AuthOptions.AUDIENCE,
+            issuer: AuthOptions.Issuer,
+            audience: AuthOptions.Audience,
             claims: claims,
             expires: DateTime.UtcNow.Add(TimeSpan.FromMinutes(2)),
             signingCredentials: new SigningCredentials(
@@ -169,11 +153,13 @@ app.MapPost(
         };
 
         return Results.Json(response);
+
     }
 );
 
 app.MapPost(
     "/newBlackboard",
+    //[Authorize]
     async (NewBlackboardData blackboardData, ApplicationContext db) =>
     {
         ArgumentNullException.ThrowIfNull(blackboardData);
@@ -207,14 +193,10 @@ app.MapPost(
 
 app.MapDelete(
     "deleteBlackboard/{idStr}",
-    async (string idStr, ApplicationContext db) =>
+    //[Authorize]
+    async (int id, ApplicationContext db) => //Разобраться с idStr и id
     {
         ArgumentNullException.ThrowIfNull(db);
-
-        if (!int.TryParse(idStr, out int id))
-        {
-            return Results.Json(new { isSuccess = false, failureReason = "Id isn't integer.", });
-        }
 
         var deletedBlackboard = db.Blackboards.Find(id);
 
@@ -233,6 +215,7 @@ app.MapDelete(
 
 app.MapGet(
     "userBlackboards/{userId}",
+    //[Authorize]
     (string userId, ApplicationContext db) =>
     {
         ArgumentNullException.ThrowIfNull(db);

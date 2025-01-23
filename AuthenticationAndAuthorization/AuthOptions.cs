@@ -1,17 +1,17 @@
 using System.Text;
 using Microsoft.IdentityModel.Tokens;
 
-namespace AuthenticationAndAuthorization
+namespace slate.AuthenticationAndAuthorization
 {
-    public class AuthOptions
+    public abstract class AuthOptions
     {
-        public const string ISSUER = "MyAuthServer";
-        public const string AUDIENCE = "MyAuthClient";
-        const string KEY = "mysupersecret_secretsecretsecretkey!123";
+        public const string Issuer = "MyAuthServer";
+        public const string Audience = "MyAuthClient";
+        private const string key = "mysupersecret_secretsecretsecretkey!123";
 
         public static SymmetricSecurityKey GetSymmetricSecurityKey()
         {
-            return new(Encoding.UTF8.GetBytes(KEY));
+            return new SymmetricSecurityKey(Encoding.UTF8.GetBytes(key));
         }
     }
 }

@@ -1,8 +1,8 @@
-namespace DrawingServices
+namespace slate.DrawingServices
 {
-    public record DragObjectData
+    public record DragObjectData: IActionData
     {
-        public required string Id { get; init; }
+        public required int Id { get; init; }
         public double Left { get; init; }
         public double Top { get; init; }
     }

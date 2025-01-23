@@ -1,4 +1,4 @@
-namespace DrawingServices
+namespace slate.DrawingServices
 {
     public interface IPointStoreService
     {

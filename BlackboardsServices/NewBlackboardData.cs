@@ -1,4 +1,4 @@
-namespace BlackboardsServices
+namespace slate.BlackboardsServices
 {
     public record NewBlackboardData
     {

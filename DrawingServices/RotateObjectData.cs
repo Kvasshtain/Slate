@@ -1,8 +1,8 @@
-namespace DrawingServices
+namespace slate.DrawingServices
 {
-    public record RotateObjectData
+    public record RotateObjectData: IActionData
     {
-        public required string Id { get; init; }
+        public required int Id { get; init; }
         public double Angle { get; init; }
     }
 }

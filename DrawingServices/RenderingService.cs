@@ -5,14 +5,14 @@ using SixLabors.ImageSharp.Drawing.Processing;
 using SixLabors.ImageSharp.PixelFormats;
 using SixLabors.ImageSharp.Processing;
 
-namespace DrawingServices
+namespace slate.DrawingServices
 {
     public class RenderingService(
         IPointStoreService pointStoreService,
         IBlackboardStoreService imageStoreService
     ) : IRenderingService
     {
-        private IPointStoreService pointStoreService =
+        private readonly IPointStoreService pointStoreService =
             pointStoreService ?? throw new ArgumentNullException(nameof(pointStoreService));
         private IBlackboardStoreService imageStoreService =
             imageStoreService ?? throw new ArgumentNullException(nameof(imageStoreService));
@@ -20,7 +20,7 @@ namespace DrawingServices
         public string Render()
         {
             //Debug.WriteLine($"Vector.IsHardwareAccelerated = {Vector.IsHardwareAccelerated}");
-            Stopwatch stopWatch = new Stopwatch();
+            var stopWatch = new Stopwatch();
             stopWatch.Start();
 
             string resultData;
@@ -91,19 +91,19 @@ namespace DrawingServices
 
         public void TestDraw()
         {
-            int width = 640;
-            int height = 480;
+            const int width = 640;
+            const int height = 480;
 
             using Image<Rgba32> image = new(width, height);
 
             DrawingOptions options =
                 new()
                 {
-                    GraphicsOptions = new() { ColorBlendingMode = PixelColorBlendingMode.Multiply }
+                    GraphicsOptions = new GraphicsOptions { ColorBlendingMode = PixelColorBlendingMode.Multiply }
                 };
 
-            PatternBrush brush = Brushes.Horizontal(Color.Red, Color.Blue);
-            PatternPen pen = Pens.DashDot(Color.Green, 5);
+            var brush = Brushes.Horizontal(Color.Red, Color.Blue);
+            var pen = Pens.DashDot(Color.Green, 5);
             var star = new Star(
                 x: 100.0f,
                 y: 100.0f,
